@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Akadev Store - Pterodactyl Panel</title>
+  <style>
+    /* SOLID & CLEAN COLOR PALETTE - NO GRADIENTS */
+    :root {
+      --bg: #0a0a0a;
+      --surface: #171717;
+      --surface-hover: #262626;
+      --border: #333333;
+      --border-hover: #525252;
+      --text: #ededed;
+      --muted: #a3a3a3;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --success-hover: #15803d;
+      --accent: #f59e0b;
+      --radius: 8px;
+      --max: 1100px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    .wrap { width: min(var(--max), calc(100% - 32px)); margin: auto; }
+
+    /* TOPBAR */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background-color: rgba(10, 10, 10, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; }
+    
+    .brand { display: flex; align-items: center; gap: 12px; }
+    /* LOGO UPDATE: Membuatnya bulat sempurna */
+    .brand-logo { 
+      width: 36px; 
+      height: 36px; 
+      object-fit: cover; 
+      border-radius: 50%; 
+      border: 1px solid var(--border);
+    }
+    .brand-text .title { font-size: 14px; font-weight: 700; margin: 0; letter-spacing: 0.5px; }
+    .brand-text .sub { font-size: 11px; color: var(--muted); margin: 2px 0 0; }
+
+    .nav { display: flex; gap: 16px; font-size: 13px; font-weight: 500; }
+    .nav a { color: var(--muted); transition: color 0.2s; }
+    .nav a:hover { color: var(--text); }
+
+    /* HERO */
+    .hero { padding: 48px 0; border-bottom: 1px solid var(--border); }
+    .hero-box { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+    .hero-left h1 { font-size: 28px; line-height: 1.3; margin: 0 0 16px; font-weight: 800; }
+    .hero-left p { color: var(--muted); font-size: 15px; margin: 0 0 24px; max-width: 90%; }
+    .hero-cta { display: flex; gap: 12px; }
+    
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 10px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 600;
+      border: 1px solid transparent; cursor: pointer; transition: all 0.2s ease;
+    }
+    .btn-primary { background-color: var(--text); color: var(--bg); }
+    .btn-primary:hover { background-color: #d4d4d4; }
+    .btn-outline { background-color: transparent; border-color: var(--border); color: var(--text); }
+    .btn-outline:hover { background-color: var(--surface); border-color: var(--border-hover); }
+
+    .hero-right { display: flex; flex-direction: column; gap: 12px; }
+    .feature-item {
+      display: flex; gap: 12px; padding: 16px; background-color: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+    }
+    .feature-icon { color: var(--primary); font-size: 18px; line-height: 1; }
+    .feature-text strong { display: block; font-size: 14px; margin-bottom: 4px; }
+    .feature-text span { font-size: 13px; color: var(--muted); }
+
+    /* SECTION CONFIG */
+    .section { padding: 64px 0; border-bottom: 1px solid var(--border); }
+    .section-head { margin-bottom: 32px; }
+    .section-head h2 { margin: 0 0 8px; font-size: 20px; font-weight: 700; }
+    .section-head p { margin: 0; font-size: 14px; color: var(--muted); }
+
+    /* CATALOG GRID */
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+    /* CARD DESIGN */
+    .card {
+      background-color: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column;
+      transition: border-color 0.2s, transform 0.2s; position: relative;
+    }
+    .card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+    
+    .card-best { border-color: var(--primary); }
+    .card-best:hover { border-color: var(--primary-hover); }
+
+    .label {
+      position: absolute; top: -10px; right: 16px; background-color: var(--primary);
+      color: white; font-size: 10px; font-weight: 700; padding: 4px 8px;
+      border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .label-accent { background-color: var(--accent); color: #000; }
+
+    .plan-header { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; }
+    .plan-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .plan-desc { font-size: 12px; color: var(--muted); }
+    
+    .price-wrap { margin-top: 12px; }
+    .price { font-size: 24px; font-weight: 800; color: var(--text); }
+    .price-period { font-size: 12px; color: var(--muted); font-weight: 400; }
+
+    .specs { margin-bottom: 24px; flex-grow: 1; }
+    .spec {
+      display: flex; justify-content: space-between; font-size: 13px;
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .spec:last-child { border-bottom: none; }
+    .spec span { color: var(--muted); }
+    .spec strong { font-weight: 600; }
+
+    .card-actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .btn-buy {
+      background-color: var(--primary); color: white; padding: 10px;
+      text-align: center; border-radius: 6px; font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer; transition: 0.2s; width: 100%;
+    }
+    .btn-buy:hover { background-color: var(--primary-hover); }
+
+    /* INFO GRID */
+    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .info-box {
+      padding: 24px; background-color: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+    }
+    .info-box h3 { margin: 0 0 12px; font-size: 15px; }
+    .info-box p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    /* FOOTER */
+    .footer { padding: 32px 0; text-align: center; color: var(--muted); font-size: 13px; }
+
+    /* CUSTOM MODAL POP-UP */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; opacity: 0; visibility: hidden; transition: all 0.3s ease;
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-content {
+      background-color: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px 24px; width: 90%; max-width: 420px;
+      text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      transform: translateY(20px); transition: transform 0.3s ease;
+    }
+    .modal-overlay.active .modal-content { transform: translateY(0); }
+    
+    .modal-icon { font-size: 40px; margin-bottom: 16px; }
+    .modal-title { font-size: 18px; font-weight: 700; margin: 0 0 12px; color: var(--text); }
+    .modal-text { font-size: 14px; color: var(--muted); margin: 0 0 24px; line-height: 1.6; }
+    .modal-text strong { color: var(--text); }
+    
+    .btn-close-modal {
+      background-color: var(--primary); color: white; border: none;
+      padding: 12px 24px; border-radius: var(--radius); font-size: 14px;
+      font-weight: 600; cursor: pointer; transition: 0.2s ease; width: 100%;
+    }
+    .btn-close-modal:hover { background-color: var(--primary-hover); }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 992px) {
+      .hero-box { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .info-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .wrap { width: calc(100% - 20px); }
+      .nav { display: none; }
+      .hero { padding: 32px 0; }
+      .hero-left h1 { font-size: 22px; }
+      
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      
+      .card { padding: 12px; }
+      .plan-name { font-size: 15px; }
+      .plan-desc { font-size: 10px; }
+      .price { font-size: 18px; }
+      .price-period { font-size: 10px; }
+      .spec { font-size: 11px; padding: 6px 0; }
+      .btn-buy { font-size: 12px; padding: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <img src="https://raw.githubusercontent.com/akaanakbaik/my-cdn/main/file_000000000dec71faa172d7d8d6e29392.png" alt="Akadev Logo" class="brand-logo">
+        <div class="brand-text">
+          <p class="title">Akadev Store</p>
+          <p class="sub">High-Performance Pterodactyl Panel</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#katalog">Katalog</a>
+        <a href="#fitur">Fitur</a>
+        <a href="#info">Informasi</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap hero-box">
+      <div class="hero-left">
+        <h1>Deploy Server Bot & Game Kamu dalam Hitungan Detik.</h1>
+        <p>Infrastruktur Pterodactyl yang dirancang khusus untuk stabilitas tinggi. Cocok untuk bot WhatsApp, aplikasi ringan, hingga kebutuhan game server profesional.</p>
+        <div class="hero-cta">
+          <a href="#katalog" class="btn btn-primary">Lihat Harga</a>
+          <a href="#fitur" class="btn btn-outline">Pelajari Fitur</a>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="feature-item">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <strong>Instant Setup</strong>
+            <span>Server kamu aktif otomatis seketika setelah pembayaran terkonfirmasi.</span>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🛡️</div>
+          <div class="feature-text">
+            <strong>Stabil & Aman</strong>
+            <span>Sistem terisolasi menjamin performa server kamu tidak terganggu oleh pengguna lain.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="katalog">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Paket & Harga</h2>
+        <p>Pilih kapasitas daya komputasi yang paling sesuai dengan skala projekmu.</p>
+      </div>
+
+      <div class="grid">
+        
+        <div class="card">
+          <div class="plan-header">
+            <div class="plan-name">Starter</div>
+            <div class="plan-desc">Cocok untuk bot ringan</div>
+            <div class="price-wrap">
+              <span class="price">Rp4.900</span><span class="price-period">/bln</span>
+            </div>
+          </div>
+          <div class="specs">
+            <div class="spec"><span>RAM</span><strong>1 GB</strong></div>
+            <div class="spec"><span>CPU</span><strong>40%</strong></div>
+            <div class="spec"><span>Disk</span><strong>2 GB</strong></div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-buy" onclick="showModal()">Beli Sekarang</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="plan-header">
+            <div class="plan-name">Basic</div>
+            <div class="plan-desc">Untuk bot lebih aktif</div>
+            <div class="price-wrap">
+              <span class="price">Rp8.900</span><span class="price-period">/bln</span>
+            </div>
+          </div>
+          <div class="specs">
+            <div class="spec"><span>RAM</span><strong>2 GB</strong></div>
+            <div class="spec"><span>CPU</span><strong>60%</strong></div>
+            <div class="spec"><span>Disk</span><strong>4 GB</strong></div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-buy" onclick="showModal()">Beli Sekarang</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="plan-header">
+            <div class="plan-name">Standard</div>
+            <div class="plan-desc">Traffic menengah</div>
+            <div class="price-wrap">
+              <span class="price">Rp12.900</span><span class="price-period">/bln</span>
+            </div>
+          </div>
+          <div class="specs">
+            <div class="spec"><span>RAM</span><strong>3 GB</strong></div>
+            <div class="spec"><span>CPU</span><strong>80%</strong></div>
+            <div class="spec"><span>Disk</span><strong>5 GB</strong></div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-buy" onclick="showModal()">Beli Sekarang</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="plan-header">
+            <div class="plan-name">Plus</div>
+            <div class="plan-desc">Multitasking bot</div>
+            <div class="price-wrap">
+              <span class="price">Rp16.900</span><span class="price-period">/bln</span>
+            </div>
+          </div>
+          <div class="specs">
+            <div class="spec"><span>RAM</span><strong>4 GB</strong></div>
+            <div class="spec"><span>CPU</span><strong>100%</strong></div>
+            <div class="spec"><span>Disk</span><strong>8 GB</strong></div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-buy" onclick="showModal()">Beli Sekarang</button>
+          </div>
+        </div>
+
+        <div class="card card-best">
+          <span class="label">Best Value</span>
+          <div class="plan-header">
+            <div class="plan-name">Pro</div>
+            <div class="plan-desc">Value terbaik untuk app</div>
+            <div class="price-wrap">
+              <span class="price">Rp19.900</span><span class="price-period">/bln</span>
+            </div>
+          </div>
+          <div class="specs">
+            <div class="spec"><span>RAM</span><strong>6 GB</strong></div>
+            <div class="spec"><span>CPU</span><strong>120%</strong></div>
+            <div class="spec"><span>Disk</span><strong>12 GB</strong></div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-buy" onclick="showModal()">Beli Sekarang</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="plan-header">
+            <div class="plan-name">Advanced</div>
+            <div class="plan-desc">Server intensif</div>
+            <div class="price-wrap">
+              <span class="price">Rp27.900</span><span class="price-period">/bln</span>
+            </div>
+          </div>
+          <div class="specs">
+            <div class="spec"><span>RAM</span><strong>8 GB</strong></div>
+            <div class="spec"><span>CPU</span><strong>150%</strong></div>
+            <div class="spec"><span>Disk</span><strong>15 GB</strong></div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-buy" onclick="showModal()">Beli Sekarang</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="plan-header">
+            <div class="plan-name">Ultra</div>
+            <div class="plan-desc">Performa maksimal</div>
+            <div class="price-wrap">
+              <span class="price">Rp34.900</span><span class="price-period">/bln</span>
+            </div>
+          </div>
+          <div class="specs">
+            <div class="spec"><span>RAM</span><strong>10 GB</strong></div>
+            <div class="spec"><span>CPU</span><strong>200%</strong></div>
+            <div class="spec"><span>Disk</span><strong>20 GB</strong></div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-buy" onclick="showModal()">Beli Sekarang</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="label label-accent">Enterprise</span>
+          <div class="plan-header">
+            <div class="plan-name">Max</div>
+            <div class="plan-desc">Tanpa batasan limitasi</div>
+            <div class="price-wrap">
+              <span class="price">Rp49.900</span><span class="price-period">/bln</span>
+            </div>
+          </div>
+          <div class="specs">
+            <div class="spec"><span>RAM</span><strong>Unlimited</strong></div>
+            <div class="spec"><span>CPU</span><strong>Unlimited</strong></div>
+            <div class="spec"><span>Disk</span><strong>Unlimited</strong></div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-buy" onclick="showModal()">Beli Sekarang</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="fitur">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Keunggulan Infrastruktur Kami</h2>
+      </div>
+      <div class="info-grid">
+        <div class="info-box">
+          <h3>Arsitektur Modern</h3>
+          <p>Tampilan store dan panel didesain sangat responsif, solid, dan profesional layaknya layanan cloud global. Bebas akses dari PC maupun HP.</p>
+        </div>
+        <div class="info-box">
+          <h3>Skalabilitas Tinggi</h3>
+          <p>Kapanpun project kamu bertumbuh, kamu bisa melakukan upgrade paket (contoh dari 2GB ke 6GB) tanpa harus kehilangan data atau konfigurasi lama.</p>
+        </div>
+        <div class="info-box">
+          <h3>Dukungan Penuh</h3>
+          <p>Mengalami kendala saat deploy script? Customer service kami siap membantu kendala teknis dasar agar servermu segera online.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer" id="info">
+    <div class="wrap">
+      <p>© 2026 Akadev Store. All rights reserved.<br>Layanan penyedia infrastruktur server & panel Pterodactyl terpercaya.</p>
+    </div>
+  </footer>
+
+  <div class="modal-overlay" id="paymentModal">
+    <div class="modal-content">
+      <div class="modal-icon">🚧</div>
+      <h3 class="modal-title">Sistem Sedang Dalam Pengerjaan</h3>
+      <p class="modal-text">Mohon maaf, fitur pembelian otomatis saat ini sedang dalam tahap pengembangan. Kami sedang menunggu persetujuan integrasi API Gateway dari <strong>DOKU</strong>.</p>
+      <button class="btn-close-modal" onclick="closeModal()">Saya Mengerti</button>
+    </div>
+  </div>
+
+  <script>
+    // Fungsi untuk menampilkan modal
+    function showModal() {
+      document.getElementById('paymentModal').classList.add('active');
+    }
+
+    // Fungsi untuk menutup modal
+    function closeModal() {
+      document.getElementById('paymentModal').classList.remove('active');
+    }
+
+    // Opsional: Tutup modal jika user klik area gelap di luar box
+    document.getElementById('paymentModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
