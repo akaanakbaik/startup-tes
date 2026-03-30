@@ -11,12 +11,11 @@ export default function Success() {
   const product = state?.product
 
   useEffect(() => {
-    // Cleanup order data dari localStorage
     if (orderId) {
       localStorage.removeItem(`order_${orderId}`)
+      localStorage.removeItem('pending_transaction')
     }
     
-    // Auto redirect setelah 5 detik
     const timer = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
@@ -106,13 +105,11 @@ const styles = {
     maxWidth: '400px',
     width: '100%',
     textAlign: 'center',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
-    animation: 'fadeIn 0.5s ease-in'
+    boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
   },
   icon: {
     fontSize: '72px',
-    marginBottom: '20px',
-    animation: 'bounce 0.5s ease-in-out'
+    marginBottom: '20px'
   },
   title: {
     fontSize: '24px',
@@ -148,8 +145,7 @@ const styles = {
     color: '#fff',
     cursor: 'pointer',
     fontSize: '14px',
-    fontWeight: '500',
-    transition: 'all 0.2s'
+    fontWeight: '500'
   },
   homeButton: {
     flex: 1,
@@ -159,8 +155,7 @@ const styles = {
     borderRadius: '6px',
     color: '#e5e5e5',
     cursor: 'pointer',
-    fontSize: '14px',
-    transition: 'all 0.2s'
+    fontSize: '14px'
   },
   countdown: {
     fontSize: '11px',
