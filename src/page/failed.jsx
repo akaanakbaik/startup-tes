@@ -10,10 +10,10 @@ export default function Failed() {
   const product = state?.product
 
   useEffect(() => {
-    // Cleanup order data jika ada
     if (orderId) {
       localStorage.removeItem(`order_${orderId}`)
     }
+    localStorage.removeItem('pending_transaction')
   }, [orderId])
 
   const handleRetry = () => {
@@ -125,8 +125,7 @@ const styles = {
     color: '#fff',
     cursor: 'pointer',
     fontSize: '14px',
-    fontWeight: '500',
-    transition: 'background 0.2s'
+    fontWeight: '500'
   },
   homeButton: {
     flex: 1,
@@ -136,8 +135,7 @@ const styles = {
     borderRadius: '6px',
     color: '#e5e5e5',
     cursor: 'pointer',
-    fontSize: '14px',
-    transition: 'border-color 0.2s'
+    fontSize: '14px'
   },
   support: {
     fontSize: '11px',
