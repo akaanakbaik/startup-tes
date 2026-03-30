@@ -3,6 +3,7 @@ import { CONFIG } from "./config"
 
 export default function App(){
   const [plan,setPlan]=useState(null)
+  const [loading,setLoading]=useState(false)
 
   const buy=(name,price)=>{
     setPlan({name,price})
@@ -10,13 +11,25 @@ export default function App(){
   }
 
   const pay=async()=>{
+    setLoading(true)
+
     const res=await fetch(CONFIG.api,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(plan)
+      body:JSON.stringify({
+        name:plan.name,
+        price:plan.price,
+        email:"storeakadev@gmail.com"
+      })
     })
+
     const data=await res.json()
-    window.location=data.paymentUrl
+
+    if(data.paymentUrl){
+      window.location=data.paymentUrl
+    }else{
+      alert("Gagal pembayaran")
+    }
   }
 
   return(
@@ -34,10 +47,10 @@ export default function App(){
       </header>
 
       <section className="max-w-6xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-4">Deploy Server Cepat</h1>
+        <h1 className="text-2xl font-bold mb-4">Deploy Server Bot & Game Kamu</h1>
       </section>
 
-      <section id="katalog" className="max-w-6xl mx-auto p-6 grid md:grid-cols-4 grid-cols-2 gap-4">
+      <section className="max-w-6xl mx-auto p-6 grid md:grid-cols-4 grid-cols-2 gap-4">
         {[
           {name:"Starter",price:4900},
           {name:"Basic",price:8900},
@@ -48,7 +61,7 @@ export default function App(){
             <h3 className="font-bold">{p.name}</h3>
             <p className="text-xl font-bold">Rp{p.price}</p>
             <button onClick={()=>buy(p.name,p.price)} className="mt-3 bg-blue-600 w-full py-2 rounded">
-              Beli
+              Beli Sekarang
             </button>
           </div>
         ))}
@@ -60,10 +73,16 @@ export default function App(){
             <h2 className="font-bold mb-2">Checkout</h2>
             <p>{plan.name}</p>
             <p>Rp{plan.price}</p>
+
+            <div className="bg-yellow-500/10 border border-yellow-500 text-yellow-400 p-3 rounded mt-3 text-sm">
+              Sistem pembayaran dalam tahap uji coba (Sandbox Duitku)
+            </div>
+
             <input placeholder="Nama" className="w-full mt-2 p-2 bg-black border border-gray-700"/>
             <input placeholder="Email" className="w-full mt-2 p-2 bg-black border border-gray-700"/>
-            <button onClick={pay} className="mt-3 bg-blue-600 w-full py-2 rounded">
-              Bayar
+
+            <button disabled={loading} onClick={pay} className="mt-3 bg-blue-600 w-full py-2 rounded">
+              {loading ? "Memproses..." : "Bayar Sekarang"}
             </button>
           </div>
         )}
