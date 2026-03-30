@@ -1,8 +1,7 @@
 {
   "routes": [
-    {
-      "src": "/api/duitku",
-      "dest": "/duitku.js"
-    }
+    { "src": "/api/duitku", "dest": "/duitku.js" },
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
   ]
 }
