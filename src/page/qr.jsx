@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 export default function QR(){
 
   const [data,setData]=useState(null)
-  const [loading,setLoading]=useState(true)
+  const [error,setError]=useState("")
   const [status,setStatus]=useState("PENDING")
 
   const checkout = JSON.parse(localStorage.getItem("checkout")||"null")
@@ -11,48 +11,51 @@ export default function QR(){
   useEffect(()=>{
 
     if(!checkout){
-      setLoading(false)
+      setError("Data checkout tidak ada")
       return
     }
 
     fetch("/api/qris",{method:"POST"})
     .then(r=>r.json())
     .then(res=>{
-      setData(res)
-      setLoading(false)
-
-      if(res.orderId){
-        setInterval(()=>{
-          fetch("/api/status",{
-            method:"POST",
-            headers:{ "Content-Type":"application/json" },
-            body:JSON.stringify({orderId:res.orderId})
-          })
-          .then(r=>r.json())
-          .then(s=>{
-            setStatus(s.status)
-            if(s.status==="SUCCESS") window.location.href="/success"
-            if(s.status==="CANCELED") window.location.href="/failed"
-          })
-        },5000)
+      if(res.error){
+        setError(res.error)
+        return
       }
+
+      setData(res)
+
+      setInterval(()=>{
+        fetch("/api/status",{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body:JSON.stringify({orderId:res.orderId})
+        })
+        .then(r=>r.json())
+        .then(s=>{
+          setStatus(s.status)
+          if(s.status==="SUCCESS") window.location.href="/success"
+          if(s.status==="FAILED") window.location.href="/failed"
+        })
+      },5000)
+
     })
     .catch(()=>{
-      setLoading(false)
+      setError("Gagal koneksi server")
     })
 
   },[])
 
-  if(!checkout){
-    return <Center text="Data transaksi tidak ditemukan"/>
+  if(error){
+    return <Center text={error}/>
   }
 
-  if(loading){
-    return <Center text="Memuat pembayaran..."/>
+  if(!checkout){
+    return <Center text="Checkout kosong"/>
   }
 
   if(!data){
-    return <Center text="Gagal membuat pembayaran"/>
+    return <Center text="Membuat pembayaran..."/>
   }
 
   const fee = Math.round(checkout.price*0.01)
@@ -63,18 +66,12 @@ export default function QR(){
 
       <Box>
 
-        <Title>QRIS Payment</Title>
+        <Title>Pembayaran QRIS</Title>
 
-        <Text>Total: Rp {total}</Text>
-        <Text>Fee: Rp {fee}</Text>
+        <Text>Total Rp {total}</Text>
+        <Text>Fee Rp {fee}</Text>
 
-        <QRBox>
-          {data.qrString}
-        </QRBox>
-
-        <Btn onClick={()=>window.location.reload()}>
-          Refresh Status
-        </Btn>
+        <QRBox>{data.qrString}</QRBox>
 
         <Status status={status}/>
 
@@ -87,19 +84,15 @@ export default function QR(){
 }
 
 function Center({text}){
-  return (
-    <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#0a0a0a",color:"#fff"}}>
-      {text}
-    </div>
-  )
+  return <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#000",color:"#fff"}}>{text}</div>
 }
 
 function Wrap({children}){
-  return <div style={{background:"#0a0a0a",minHeight:"100vh",display:"flex",justifyContent:"center",alignItems:"center"}}>{children}</div>
+  return <div style={{background:"#0a0a0a",height:"100vh",display:"flex",justifyContent:"center",alignItems:"center"}}>{children}</div>
 }
 
 function Box({children}){
-  return <div style={{width:"320px",background:"#171717",padding:"14px",borderRadius:"8px",border:"1px solid #222"}}>{children}</div>
+  return <div style={{width:"320px",background:"#171717",padding:"14px",borderRadius:"8px"}}>{children}</div>
 }
 
 function Title({children}){
@@ -107,23 +100,19 @@ function Title({children}){
 }
 
 function Text({children}){
-  return <div style={{fontSize:"11px",marginBottom:"4px"}}>{children}</div>
+  return <div style={{fontSize:"11px"}}>{children}</div>
 }
 
 function QRBox({children}){
   return <div style={{background:"#fff",color:"#000",padding:"8px",margin:"10px 0",fontSize:"8px"}}>{children}</div>
 }
 
-function Btn({children,...props}){
-  return <button {...props} style={{width:"100%",padding:"8px",background:"#2563eb",border:"none",borderRadius:"5px",color:"#fff",fontSize:"12px"}}>{children}</button>
-}
-
 function Status({status}){
-  return <div style={{textAlign:"center",marginTop:"8px",color:status==="SUCCESS"?"#16a34a":"#f59e0b"}}>{status}</div>
+  return <div style={{textAlign:"center",marginTop:"8px",color:"#16a34a"}}>{status}</div>
 }
 
 function WM(){
-  return <div style={{marginTop:"10px",textAlign:"center",fontSize:"10px",color:"#777"}}>
+  return <div style={{marginTop:"10px",textAlign:"center",fontSize:"10px"}}>
     payment gateway by <a href="https://duitku.com" target="_blank" style={{color:"#1e3a8a"}}>duitku</a>
   </div>
 }
