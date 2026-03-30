@@ -1,94 +1,194 @@
 import { useEffect, useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
 
 export default function QR(){
 
-  const {state}=useLocation()
-  const nav = useNavigate()
-  const plan = state?.plan
-
-  const [data,setData]=useState(null)
-  const [status,setStatus]=useState("MENUNGGU")
   const [loading,setLoading]=useState(true)
+  const [error,setError]=useState("")
+  const [data,setData]=useState(null)
+  const [status,setStatus]=useState("PENDING")
 
   useEffect(()=>{
-    fetch("/api/qris",{method:"POST"})
-    .then(r=>r.json())
-    .then(res=>{
-      setData(res)
-      setLoading(false)
-    })
+    create()
   },[])
 
-  useEffect(()=>{
-    if(!data?.reference) return
+  async function create(){
 
-    const interval=setInterval(()=>{
-      fetch("/api/status",{
+    try{
+
+      setLoading(true)
+      setError("")
+
+      const res = await fetch("/api/qris",{
         method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({orderId:data.reference})
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({
+          plan:"Paket Server",
+          amount:40000
+        })
       })
-      .then(r=>r.json())
-      .then(res=>{
-        if(res.status==="SUCCESS"){
-          setStatus("SUCCESS")
+
+      const text = await res.text()
+
+      let json
+      try{
+        json = JSON.parse(text)
+      }catch{
+        setError("Server tidak valid")
+        setLoading(false)
+        return
+      }
+
+      if(!res.ok || json.error){
+        setError(json.message || "Gagal membuat QR")
+        setLoading(false)
+        return
+      }
+
+      setData(json)
+      setLoading(false)
+
+      startPolling(json.orderId)
+
+    }catch(e){
+      setError("Gagal koneksi server")
+      setLoading(false)
+    }
+
+  }
+
+  function startPolling(orderId){
+
+    const interval = setInterval(async()=>{
+
+      try{
+
+        const res = await fetch("/api/status",{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body:JSON.stringify({orderId})
+        })
+
+        const json = await res.json()
+
+        setStatus(json.status)
+
+        if(json.status==="SUCCESS"){
           clearInterval(interval)
-          setTimeout(()=>nav("/"),1500)
+          alert("Pembayaran berhasil")
         }
-      })
-    },4000)
 
-    return()=>clearInterval(interval)
+        if(json.status==="CANCELED"){
+          clearInterval(interval)
+          alert("Pembayaran dibatalkan")
+        }
 
-  },[data])
+      }catch{}
 
-  return(
-    <div style={s.body}>
-      <div style={s.wrap}>
+    },5000)
 
-        <div style={s.card}>
-          <div style={s.title}>QRIS Payment</div>
-          <div style={s.small}>Mode sandbox jangan dibayar</div>
-        </div>
+  }
 
-        <div style={s.card}>
-          <div style={s.row}><span>Produk</span><b>{plan?.name}</b></div>
-          <div style={s.row}><span>Total</span><b>Rp{plan?.price}</b></div>
-        </div>
+  return (
+    <div style={{
+      minHeight:"100vh",
+      display:"flex",
+      justifyContent:"center",
+      alignItems:"center",
+      background:"#0a0a0a",
+      padding:"16px"
+    }}>
 
-        <div style={s.qrBox}>
-          {loading && <div style={s.loading}>Memuat...</div>}
-
-          {data?.qrString && (
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.qrString)}`}
-              style={s.qr}
-            />
-          )}
-        </div>
+      <div style={{
+        width:"100%",
+        maxWidth:"320px",
+        background:"#171717",
+        border:"1px solid #333",
+        borderRadius:"8px",
+        padding:"16px",
+        textAlign:"center"
+      }}>
 
         <div style={{
-          ...s.status,
-          color: status==="SUCCESS" ? "#16a34a" : "#facc15"
+          fontSize:"12px",
+          color:"#f59e0b",
+          marginBottom:"10px"
         }}>
-          {status==="SUCCESS" ? "Pembayaran Berhasil" : "Menunggu Pembayaran"}
+          MODE TEST - JANGAN LAKUKAN PEMBAYARAN
         </div>
 
+        {loading && (
+          <div style={{fontSize:"12px",color:"#aaa"}}>
+            Membuat QR...
+          </div>
+        )}
+
+        {error && (
+          <div style={{
+            fontSize:"12px",
+            color:"#ef4444"
+          }}>
+            {error}
+          </div>
+        )}
+
+        {data && (
+          <>
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(data.qrString)}`}
+              style={{
+                width:"180px",
+                margin:"0 auto",
+                marginBottom:"12px"
+              }}
+            />
+
+            <div style={{
+              fontSize:"12px",
+              color:"#aaa",
+              marginBottom:"6px"
+            }}>
+              Nominal
+            </div>
+
+            <div style={{
+              fontSize:"14px",
+              fontWeight:"600",
+              marginBottom:"10px"
+            }}>
+              Rp {data.amount}
+            </div>
+
+            <div style={{
+              fontSize:"11px",
+              color:"#888",
+              marginBottom:"10px"
+            }}>
+              Scan menggunakan aplikasi apapun
+            </div>
+
+            <div style={{
+              fontSize:"11px",
+              marginBottom:"6px"
+            }}>
+              Status
+            </div>
+
+            <div style={{
+              fontSize:"12px",
+              fontWeight:"600",
+              color:
+                status==="SUCCESS" ? "#22c55e" :
+                status==="PENDING" ? "#f59e0b" :
+                "#ef4444"
+            }}>
+              {status}
+            </div>
+
+          </>
+        )}
+
       </div>
+
     </div>
   )
-}
-
-const s={
-body:{background:"#0a0a0a",color:"#fff",minHeight:"100vh"},
-wrap:{maxWidth:"360px",margin:"auto",padding:"12px"},
-card:{background:"#171717",padding:"10px",borderRadius:"6px",marginBottom:"8px"},
-title:{fontSize:"13px"},
-small:{fontSize:"10px",color:"#aaa"},
-row:{display:"flex",justifyContent:"space-between",fontSize:"12px"},
-qrBox:{display:"flex",justifyContent:"center",padding:"10px"},
-qr:{background:"#fff",padding:"6px",borderRadius:"8px"},
-loading:{fontSize:"12px",color:"#aaa"},
-status:{textAlign:"center",fontSize:"12px",marginTop:"10px"}
 }
