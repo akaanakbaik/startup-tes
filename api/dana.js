@@ -5,11 +5,11 @@ export default async function handler(req,res){
   const merchantCode="DS29215"
   const apiKey="79fbf35e6a735c573fc56cfa8dc25be8"
 
-  const orderId="ORD"+Date.now()
   const amount=40000
+  const orderId="DANA"+Date.now()
 
-  const signature=crypto.createHash("md5")
-  .update(merchantCode+orderId+amount+apiKey)
+  const signature = crypto.createHash("md5")
+  .update(merchantCode + orderId + amount + apiKey)
   .digest("hex")
 
   const payload={
@@ -17,7 +17,7 @@ export default async function handler(req,res){
     paymentAmount:amount,
     paymentMethod:"DA",
     merchantOrderId:orderId,
-    productDetails:"DANA TEST",
+    productDetails:"Pembayaran Dana",
     email:"test@test.com",
     customerVaName:"AKADEV STORE",
     callbackUrl:"https://store.domku.xyz/api/callback",
@@ -26,13 +26,17 @@ export default async function handler(req,res){
     expiryPeriod:1440
   }
 
-  const r=await fetch("https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry",{
+  const r = await fetch("https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry",{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
+    headers:{ "Content-Type":"application/json" },
     body:JSON.stringify(payload)
   })
 
-  const data=await r.json()
+  const data = await r.json()
 
-  res.json(data)
+  if(data.paymentUrl){
+    return res.redirect(data.paymentUrl)
+  }
+
+  res.status(500).json(data)
 }
