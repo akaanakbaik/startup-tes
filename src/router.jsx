@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { lazy, Suspense } from "react"
 
-// Lazy loading untuk performa lebih baik
 const Utama = lazy(() => import("./page/utama"))
 const Pilih = lazy(() => import("./page/pilih"))
 const QR = lazy(() => import("./page/qr"))
@@ -11,7 +10,6 @@ const Success = lazy(() => import("./page/succes"))
 const Failed = lazy(() => import("./page/failed"))
 const Invoice = lazy(() => import("./page/invoice"))
 
-// Loading component
 const LoadingScreen = () => (
   <div style={{
     background: '#0a0a0a',
@@ -45,8 +43,6 @@ export default function Router() {
           <Route path="/success" element={<Success />} />
           <Route path="/failed" element={<Failed />} />
           <Route path="/invoice/:id" element={<Invoice />} />
-          
-          {/* Redirect 404 ke halaman utama */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
