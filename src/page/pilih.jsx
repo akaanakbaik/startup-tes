@@ -1,45 +1,49 @@
-import { useLocation, useNavigate } from "react-router-dom"
-
 export default function Pilih(){
 
-  const nav = useNavigate()
-  const {state}=useLocation()
+  const data = JSON.parse(localStorage.getItem("checkout")||"{}")
 
-  const plan = state?.plan
+  function go(path){
+    window.location.href=path
+  }
 
-  return(
-    <div style={s.body}>
-      <div style={s.wrap}>
+  return (
+    <div style={{background:"#0a0a0a",minHeight:"100vh",display:"flex",justifyContent:"center",alignItems:"center"}}>
 
-        <div style={s.card}>
-          <div style={s.title}>Konfirmasi Pesanan</div>
-          <div>{plan?.name}</div>
-          <div>Rp{plan?.price}</div>
+      <div style={{width:"320px",background:"#171717",padding:"16px",borderRadius:"8px",border:"1px solid #222"}}>
+
+        <div style={{fontWeight:"700",marginBottom:"10px"}}>
+          Checkout
         </div>
 
-        <div style={s.title}>Pilih Pembayaran</div>
-
-        <div style={s.item} onClick={()=>nav("/qris",{state:{plan}})}>
-          QRIS (ShopeePay)
+        <div style={{fontSize:"12px",marginBottom:"10px"}}>
+          {data.name} - {data.ram}
         </div>
 
-        <div style={s.item} onClick={()=>nav("/dana",{state:{plan}})}>
-          DANA
+        <div style={{fontWeight:"700",marginBottom:"14px"}}>
+          Rp {data.price}
         </div>
 
-        <div style={s.item} onClick={()=>nav("/cc",{state:{plan}})}>
-          Credit Card
+        <button onClick={()=>go("/qr")} style={btn}>QRIS</button>
+        <button onClick={()=>go("/ewalletdana")} style={btn}>DANA</button>
+        <button onClick={()=>go("/creditcard")} style={btn}>Credit Card</button>
+
+        <div style={{marginTop:"12px",textAlign:"center",fontSize:"10px",color:"#777"}}>
+          payment gateway by <a href="https://duitku.com" target="_blank" style={{color:"#1e3a8a"}}>duitku</a>
         </div>
 
       </div>
+
     </div>
   )
 }
 
-const s={
-body:{background:"#0a0a0a",color:"#fff",minHeight:"100vh"},
-wrap:{maxWidth:"400px",margin:"auto",padding:"20px"},
-title:{marginTop:"15px",fontSize:"14px"},
-card:{background:"#171717",padding:"10px",borderRadius:"6px"},
-item:{padding:"12px",background:"#111",marginTop:"10px",borderRadius:"6px"}
+const btn={
+  width:"100%",
+  padding:"8px",
+  marginBottom:"6px",
+  background:"#2563eb",
+  border:"none",
+  borderRadius:"5px",
+  color:"#fff",
+  fontSize:"12px"
 }
