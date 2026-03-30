@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end()
 
   const merchantCode = "DS29215"
-  const apiKey = "ISI_API_KEY_SANDBOX_KAMU"
+  const apiKey = "79fbf35e6a735c573fc56cfa8dc25be8","
 
   const { name, price, email } = req.body
 
