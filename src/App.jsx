@@ -1,8 +1,12 @@
-import { useState } from "react"
-import { CONFIG } from "./config"
+import { useState, useEffect } from "react"
 
 export default function App(){
+
   const [plan,setPlan]=useState(null)
+  const [method,setMethod]=useState(null)
+  const [qr,setQr]=useState(null)
+  const [orderId,setOrderId]=useState(null)
+  const [status,setStatus]=useState("WAITING")
   const [loading,setLoading]=useState(false)
   const [popup,setPopup]=useState(null)
 
@@ -16,112 +20,148 @@ export default function App(){
     window.location="#checkout"
   }
 
-  const pay=async()=>{
+  const createQR = async () => {
     setLoading(true)
 
-    try {
-      const res = await fetch(CONFIG.api,{
+    const res = await fetch("/api/duitku-create",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        name:plan.name,
+        price:plan.price,
+        email:"storeakadev@gmail.com"
+      })
+    })
+
+    const data = await res.json()
+    setLoading(false)
+
+    if (!data.success) {
+      showPopup("error",data.message)
+      return
+    }
+
+    setQr(data.qrString)
+    setOrderId(data.merchantOrderId)
+    showPopup("success","QRIS berhasil dibuat")
+  }
+
+  useEffect(()=>{
+    if(!orderId) return
+
+    const interval = setInterval(async()=>{
+      const res = await fetch("/api/duitku-status",{
         method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          name:plan.name,
-          price:plan.price,
-          email:"storeakadev@gmail.com"
-        })
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ merchantOrderId:orderId })
       })
 
       const data = await res.json()
 
-      if (!data.success) {
-        showPopup("error", data.message || "Terjadi kesalahan")
-        setLoading(false)
-        return
+      if(data.statusCode === "00"){
+        setStatus("SUCCESS")
+        showPopup("success","Pembayaran berhasil")
+        clearInterval(interval)
       }
 
-      showPopup("success","Mengalihkan ke pembayaran...")
+    },5000)
 
-      setTimeout(()=>{
-        window.location = data.paymentUrl
-      },1500)
+    return ()=>clearInterval(interval)
 
-    } catch {
-      showPopup("error","Gagal terhubung ke server")
-      setLoading(false)
-    }
-  }
+  },[orderId])
 
   return(
     <div className="bg-[#0a0a0a] min-h-screen text-white">
 
-      <header className="border-b border-gray-800 sticky top-0 bg-black/80 backdrop-blur">
-        <div className="max-w-6xl mx-auto flex justify-between p-4">
-          <div className="flex items-center gap-3">
-            <img src="https://raw.githubusercontent.com/akaanakbaik/my-cdn/main/file_000000000dec71faa172d7d8d6e29392.png" className="w-9 h-9 rounded-full"/>
-            <div>
-              <p className="text-sm font-bold">Akadev Store</p>
-              <p className="text-xs text-gray-400">High-Performance Pterodactyl Panel</p>
+      <div className="max-w-5xl mx-auto p-6">
+
+        <h1 className="text-2xl font-bold mb-6">Akadev Store</h1>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            {name:"Starter",price:4900},
+            {name:"Basic",price:8900},
+            {name:"Standard",price:12900},
+            {name:"Plus",price:16900}
+          ].map(p=>(
+            <div key={p.name} className="bg-[#171717] p-4 rounded border border-gray-800">
+              <h3>{p.name}</h3>
+              <p className="font-bold">Rp{p.price}</p>
+              <button onClick={()=>buy(p.name,p.price)} className="mt-2 bg-blue-600 w-full py-2 rounded">
+                Beli
+              </button>
             </div>
-          </div>
+          ))}
         </div>
-      </header>
 
-      <section className="max-w-6xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-4">
-          Deploy Server Bot & Game Kamu dalam Hitungan Detik
-        </h1>
-        <p className="text-gray-400 text-sm">
-          Infrastruktur hosting panel Pterodactyl dengan performa tinggi dan stabil.
-        </p>
-      </section>
-
-      <section className="max-w-6xl mx-auto p-6 grid md:grid-cols-4 grid-cols-2 gap-4">
-        {[
-          {name:"Starter",price:4900},
-          {name:"Basic",price:8900},
-          {name:"Standard",price:12900},
-          {name:"Plus",price:16900}
-        ].map(p=>(
-          <div key={p.name} className="bg-[#171717] p-4 rounded border border-gray-800 hover:border-gray-600 transition">
-            <h3 className="font-bold">{p.name}</h3>
-            <p className="text-xl font-bold mt-1">Rp{p.price}</p>
-            <button onClick={()=>buy(p.name,p.price)} className="mt-3 bg-blue-600 w-full py-2 rounded hover:bg-blue-700 transition">
-              Beli Sekarang
-            </button>
-          </div>
-        ))}
-      </section>
-
-      <section id="checkout" className="max-w-xl mx-auto p-6">
         {plan && (
-          <div className="bg-[#171717] p-6 rounded border border-gray-800">
-            <h2 className="font-bold mb-2">Checkout</h2>
-            <p>{plan.name}</p>
-            <p className="mb-2">Rp{plan.price}</p>
+          <div id="checkout" className="mt-6 bg-[#171717] p-6 rounded border border-gray-800">
 
-            <div className="bg-blue-500/10 border border-blue-500 text-blue-400 p-3 rounded mt-3 text-sm">
-              Sistem pembayaran telah terintegrasi dan berjalan dalam mode pengujian (Sandbox).
+            <div className="bg-yellow-500/10 border border-yellow-500 text-yellow-400 p-3 rounded text-sm mb-4">
+              Sistem pembayaran ini masih dalam tahap uji coba (Sandbox). Jangan melakukan pembayaran nyata.
             </div>
 
-            <input placeholder="Nama Lengkap" className="w-full mt-3 p-2 bg-black border border-gray-700"/>
-            <input placeholder="Email" className="w-full mt-2 p-2 bg-black border border-gray-700"/>
+            <p>{plan.name}</p>
+            <p className="font-bold mb-4">Rp{plan.price}</p>
 
-            <button disabled={loading} onClick={pay} className="mt-4 bg-blue-600 w-full py-2 rounded hover:bg-blue-700 transition">
-              {loading ? "Memproses..." : "Bayar Sekarang"}
-            </button>
+            {!method && (
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={()=>setMethod("gopay")} className="bg-[#262626] p-3 rounded">
+                  GoPay
+                </button>
+                <button onClick={()=>setMethod("qris")} className="bg-[#262626] p-3 rounded">
+                  QRIS
+                </button>
+              </div>
+            )}
+
+            {method==="gopay" && (
+              <div className="mt-4 bg-green-500/10 border border-green-500 text-green-400 p-3 rounded text-sm">
+                GoPay sedang dalam tahap pengujian dan belum tersedia.
+              </div>
+            )}
+
+            {method==="qris" && (
+              <div className="mt-4 text-center">
+
+                {!qr && (
+                  <button
+                    onClick={createQR}
+                    className="bg-blue-600 px-4 py-2 rounded"
+                  >
+                    {loading ? "Memproses..." : "Generate QRIS"}
+                  </button>
+                )}
+
+                {qr && (
+                  <>
+                    <div className="bg-white p-4 inline-block rounded">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qr)}`}
+                      />
+                    </div>
+
+                    <p className="text-xs text-gray-400 mt-2">
+                      QRIS NOBU (Sandbox)
+                    </p>
+
+                    <p className="mt-2 text-sm">
+                      Status: {status}
+                    </p>
+                  </>
+                )}
+
+              </div>
+            )}
+
           </div>
         )}
-      </section>
 
-      <footer className="text-center text-gray-400 p-6 border-t border-gray-800">
-        <p>© 2026 Akadev Store</p>
-        <p>Email: storeakadev@gmail.com</p>
-        <p>Phone: +6281266950382</p>
-        <p>Address: Ujung Gading, Pasaman Barat, Sumatera Barat</p>
-      </footer>
+      </div>
 
       {popup && (
         <div className="fixed top-5 right-5 z-50">
-          <div className={`px-4 py-3 rounded shadow-lg text-sm ${
+          <div className={`px-4 py-3 rounded text-sm ${
             popup.type==="error" ? "bg-red-600" : "bg-green-600"
           }`}>
             {popup.message}
