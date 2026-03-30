@@ -1,174 +1,220 @@
 import { useState, useEffect } from "react"
 
-export default function App(){
+const products = [
+  { name: "Starter", price: 10000, ram: "1GB", cpu: "40%", disk: "2GB" },
+  { name: "Basic", price: 15000, ram: "2GB", cpu: "60%", disk: "4GB" },
+  { name: "Standard", price: 20000, ram: "3GB", cpu: "80%", disk: "5GB" },
+  { name: "Plus", price: 25000, ram: "4GB", cpu: "100%", disk: "8GB" },
+  { name: "Pro", price: 30000, ram: "6GB", cpu: "120%", disk: "12GB" },
+  { name: "Advanced", price: 40000, ram: "8GB", cpu: "150%", disk: "15GB" }
+]
 
-  const [plan,setPlan]=useState(null)
-  const [method,setMethod]=useState(null)
-  const [qr,setQr]=useState(null)
-  const [orderId,setOrderId]=useState(null)
-  const [status,setStatus]=useState("WAITING")
-  const [loading,setLoading]=useState(false)
-  const [popup,setPopup]=useState(null)
+function App() {
+  const [selected, setSelected] = useState(null)
+  const [step, setStep] = useState("catalog")
+  const [email, setEmail] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [qr, setQr] = useState("")
+  const [status, setStatus] = useState("Menunggu pembayaran")
+  const [notif, setNotif] = useState("")
+  const [orderId, setOrderId] = useState("")
 
-  const showPopup=(type,message)=>{
-    setPopup({type,message})
-    setTimeout(()=>setPopup(null),3000)
+  const handleBuy = (item) => {
+    setSelected(item)
+    setStep("checkout")
   }
 
-  const buy=(name,price)=>{
-    setPlan({name,price})
-    window.location="#checkout"
-  }
-
-  const createQR = async () => {
-    setLoading(true)
-
-    const res = await fetch("/api/duitku-create",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({
-        name:plan.name,
-        price:plan.price,
-        email:"storeakadev@gmail.com"
-      })
-    })
-
-    const data = await res.json()
-    setLoading(false)
-
-    if (!data.success) {
-      showPopup("error",data.message)
+  const createPayment = async () => {
+    if (!email) {
+      setNotif("Email wajib diisi")
       return
     }
 
-    setQr(data.qrString)
-    setOrderId(data.merchantOrderId)
-    showPopup("success","QRIS berhasil dibuat")
-  }
+    setLoading(true)
+    setNotif("Memproses transaksi...")
 
-  useEffect(()=>{
-    if(!orderId) return
-
-    const interval = setInterval(async()=>{
-      const res = await fetch("/api/duitku-status",{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ merchantOrderId:orderId })
+    try {
+      const res = await fetch("/api/duitku-create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: selected.name,
+          price: selected.price,
+          email
+        })
       })
 
       const data = await res.json()
 
-      if(data.statusCode === "00"){
-        setStatus("SUCCESS")
-        showPopup("success","Pembayaran berhasil")
-        clearInterval(interval)
+      if (!data.success) {
+        setNotif(data.message || "Gagal membuat transaksi")
+        setLoading(false)
+        return
       }
 
-    },5000)
+      setQr(data.qrString)
+      setOrderId(data.merchantOrderId)
+      setStep("payment")
+      setNotif("QR berhasil dibuat")
+    } catch (e) {
+      setNotif("Terjadi kesalahan server")
+    }
 
-    return ()=>clearInterval(interval)
+    setLoading(false)
+  }
 
-  },[orderId])
+  useEffect(() => {
+    if (step === "payment" && orderId) {
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch("/api/duitku-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ merchantOrderId: orderId })
+          })
 
-  return(
-    <div className="bg-[#0a0a0a] min-h-screen text-white">
+          const data = await res.json()
 
-      <div className="max-w-5xl mx-auto p-6">
+          if (data.statusCode === "00") {
+            setStatus("Pembayaran berhasil")
+            setNotif("Transaksi berhasil diverifikasi")
+            clearInterval(interval)
+          }
+        } catch {}
+      }, 5000)
 
-        <h1 className="text-2xl font-bold mb-6">Akadev Store</h1>
+      return () => clearInterval(interval)
+    }
+  }, [step, orderId])
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            {name:"Starter",price:4900},
-            {name:"Basic",price:8900},
-            {name:"Standard",price:12900},
-            {name:"Plus",price:16900}
-          ].map(p=>(
-            <div key={p.name} className="bg-[#171717] p-4 rounded border border-gray-800">
-              <h3>{p.name}</h3>
-              <p className="font-bold">Rp{p.price}</p>
-              <button onClick={()=>buy(p.name,p.price)} className="mt-2 bg-blue-600 w-full py-2 rounded">
-                Beli
-              </button>
-            </div>
-          ))}
-        </div>
+  return (
+    <div className="min-h-screen bg-neutral-950 text-white">
 
-        {plan && (
-          <div id="checkout" className="mt-6 bg-[#171717] p-6 rounded border border-gray-800">
+      <header className="border-b border-neutral-800 p-4 flex justify-between">
+        <div className="font-bold">Akadev Store</div>
+        <div className="text-sm text-neutral-400">Sandbox Mode</div>
+      </header>
 
-            <div className="bg-yellow-500/10 border border-yellow-500 text-yellow-400 p-3 rounded text-sm mb-4">
-              Sistem pembayaran ini masih dalam tahap uji coba (Sandbox). Jangan melakukan pembayaran nyata.
-            </div>
+      <main className="p-4 max-w-6xl mx-auto">
 
-            <p>{plan.name}</p>
-            <p className="font-bold mb-4">Rp{plan.price}</p>
-
-            {!method && (
-              <div className="grid grid-cols-2 gap-3">
-                <button onClick={()=>setMethod("gopay")} className="bg-[#262626] p-3 rounded">
-                  GoPay
-                </button>
-                <button onClick={()=>setMethod("qris")} className="bg-[#262626] p-3 rounded">
-                  QRIS
-                </button>
-              </div>
-            )}
-
-            {method==="gopay" && (
-              <div className="mt-4 bg-green-500/10 border border-green-500 text-green-400 p-3 rounded text-sm">
-                GoPay sedang dalam tahap pengujian dan belum tersedia.
-              </div>
-            )}
-
-            {method==="qris" && (
-              <div className="mt-4 text-center">
-
-                {!qr && (
-                  <button
-                    onClick={createQR}
-                    className="bg-blue-600 px-4 py-2 rounded"
-                  >
-                    {loading ? "Memproses..." : "Generate QRIS"}
-                  </button>
-                )}
-
-                {qr && (
-                  <>
-                    <div className="bg-white p-4 inline-block rounded">
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(qr)}`}
-                      />
-                    </div>
-
-                    <p className="text-xs text-gray-400 mt-2">
-                      QRIS NOBU (Sandbox)
-                    </p>
-
-                    <p className="mt-2 text-sm">
-                      Status: {status}
-                    </p>
-                  </>
-                )}
-
-              </div>
-            )}
-
+        {notif && (
+          <div className="mb-4 p-3 rounded bg-blue-600 text-sm">
+            {notif}
           </div>
         )}
 
-      </div>
+        {step === "catalog" && (
+          <div>
+            <h1 className="text-2xl font-bold mb-6">Pilih Paket</h1>
 
-      {popup && (
-        <div className="fixed top-5 right-5 z-50">
-          <div className={`px-4 py-3 rounded text-sm ${
-            popup.type==="error" ? "bg-red-600" : "bg-green-600"
-          }`}>
-            {popup.message}
+            <div className="grid md:grid-cols-3 gap-4">
+              {products.map((p, i) => (
+                <div key={i} className="border border-neutral-800 rounded-xl p-4 hover:border-blue-500 transition">
+
+                  <div className="text-lg font-bold">{p.name}</div>
+                  <div className="text-neutral-400 text-sm mb-3">
+                    RAM {p.ram} • CPU {p.cpu} • Disk {p.disk}
+                  </div>
+
+                  <div className="text-xl font-bold mb-4">
+                    Rp {p.price.toLocaleString()}
+                  </div>
+
+                  <button
+                    onClick={() => handleBuy(p)}
+                    className="w-full bg-blue-600 py-2 rounded hover:bg-blue-700"
+                  >
+                    Beli
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {step === "checkout" && selected && (
+          <div className="max-w-lg mx-auto">
+
+            <h2 className="text-xl font-bold mb-4">Checkout</h2>
+
+            <div className="border border-neutral-800 p-4 rounded mb-4">
+              <div>{selected.name}</div>
+              <div className="text-sm text-neutral-400">
+                Rp {selected.price.toLocaleString()}
+              </div>
+            </div>
+
+            <input
+              type="email"
+              placeholder="Email kamu"
+              className="w-full p-3 rounded bg-neutral-900 border border-neutral-700 mb-4"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            <button
+              onClick={createPayment}
+              disabled={loading}
+              className="w-full bg-green-600 py-3 rounded hover:bg-green-700"
+            >
+              {loading ? "Memproses..." : "Lanjut Pembayaran"}
+            </button>
+
+            <button
+              onClick={() => setStep("catalog")}
+              className="w-full mt-2 border border-neutral-700 py-2 rounded"
+            >
+              Kembali
+            </button>
+          </div>
+        )}
+
+        {step === "payment" && (
+          <div className="max-w-md mx-auto text-center">
+
+            <h2 className="text-xl font-bold mb-4">Pembayaran QRIS</h2>
+
+            <div className="bg-yellow-500 text-black p-3 rounded mb-4 text-sm">
+              Mode uji coba. Jangan lakukan pembayaran asli.
+            </div>
+
+            {qr && (
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qr)}&size=250x250`}
+                alt="QR"
+                className="mx-auto mb-4"
+              />
+            )}
+
+            <div className="text-sm text-neutral-400 mb-2">
+              Scan menggunakan aplikasi e-wallet
+            </div>
+
+            <div className="text-green-400 mb-4">{status}</div>
+
+            <button
+              onClick={() => {
+                setStep("catalog")
+                setQr("")
+                setStatus("Menunggu pembayaran")
+              }}
+              className="w-full border border-neutral-700 py-2 rounded"
+            >
+              Kembali ke Katalog
+            </button>
+          </div>
+        )}
+
+      </main>
+
+      <footer className="text-center text-xs text-neutral-500 p-4 border-t border-neutral-800">
+        support@akadev.xyz • 081266950382 • Indonesia
+      </footer>
 
     </div>
   )
 }
+
+export default App
