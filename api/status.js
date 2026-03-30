@@ -1,7 +1,6 @@
-import { getTransaction } from "../../src/utils/transaction.js"
+import { getTransaction } from "../src/lib/db.js"
 
-export default function handler(req, res) {
-  // CORS headers
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -24,7 +23,7 @@ export default function handler(req, res) {
   }
 
   try {
-    const transaction = getTransaction(orderId)
+    const transaction = await getTransaction(orderId)
 
     if (!transaction) {
       return res.status(404).json({ 
@@ -33,7 +32,6 @@ export default function handler(req, res) {
       })
     }
 
-    // Format response
     const response = {
       success: true,
       data: {
@@ -44,23 +42,15 @@ export default function handler(req, res) {
         productName: transaction.productName,
         paymentMethod: transaction.paymentMethod,
         createdAt: transaction.createdAt,
-        updatedAt: transaction.updatedAt || transaction.createdAt
+        updatedAt: transaction.updatedAt
       }
     }
 
-    // Tambahkan info tambahan untuk status tertentu
     if (transaction.status === 'SUCCESS') {
-      response.data.paidAt = transaction.paidAt || transaction.updatedAt
-    }
-
-    if (transaction.status === 'PENDING' && transaction.expiryPeriod) {
-      const expiresAt = new Date(transaction.createdAt)
-      expiresAt.setMinutes(expiresAt.getMinutes() + transaction.expiryPeriod)
-      response.data.expiresAt = expiresAt.toISOString()
+      response.data.paidAt = transaction.paidAt
     }
 
     return res.status(200).json(response)
-
   } catch (error) {
     console.error('Status API Error:', error)
     return res.status(500).json({ 
