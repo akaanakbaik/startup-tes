@@ -1,19 +1,16 @@
-let db = global.db || (global.db = {})
+import { getTransaction } from "./transaction.js"
 
-export default async function handler(req,res){
+export default function handler(req, res) {
+  const { orderId } = req.query
 
-  const {orderId} = req.body || {}
+  const trx = getTransaction(orderId)
 
-  if(!orderId){
-    return res.json({status:"NOT_FOUND"})
-  }
-
-  if(!db[orderId]){
-    return res.json({status:"EXPIRED"})
+  if (!trx) {
+    return res.status(404).json({ success: false })
   }
 
   res.json({
-    status: db[orderId].status
+    success: true,
+    data: trx
   })
-
 }
