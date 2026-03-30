@@ -12,7 +12,17 @@ export default async function handler(req, res) {
     const { name, price, email } = req.body
 
     if (!name || !price) {
-      return res.status(400).json({ success:false, message:"Data tidak lengkap" })
+      return res.status(400).json({
+        success:false,
+        message:"Data tidak lengkap"
+      })
+    }
+
+    if (price < 10000) {
+      return res.status(400).json({
+        success:false,
+        message:"Minimum pembayaran Rp10.000"
+      })
     }
 
     const merchantOrderId = "INV" + Date.now()
@@ -23,34 +33,47 @@ export default async function handler(req, res) {
       .update(merchantCode + merchantOrderId + paymentAmount + apiKey)
       .digest("hex")
 
-    const duitkuRes = await fetch("https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        merchantCode,
-        paymentAmount,
-        paymentMethod: "NQ",
-        merchantOrderId,
-        productDetails: name,
-        email,
-        customerVaName: "Akadev User",
-        phoneNumber: "081266950382",
-        itemDetails: [
-          { name, price: paymentAmount, quantity: 1 }
-        ],
-        customerDetail: {
-          firstName: "Akadev",
+    const duitkuRes = await fetch(
+      "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          merchantCode,
+          paymentAmount,
+          paymentMethod: "NQ",
+          merchantOrderId,
+          productDetails: name,
           email,
-          phoneNumber: "081266950382"
-        },
-        callbackUrl: "https://store.domku.xyz/callback",
-        returnUrl: "https://store.domku.xyz",
-        signature,
-        expiryPeriod: 10
-      })
-    })
+          customerVaName: "Akadev User",
+          phoneNumber: "081266950382",
+          itemDetails: [
+            { name, price: paymentAmount, quantity: 1 }
+          ],
+          customerDetail: {
+            firstName: "Akadev",
+            email,
+            phoneNumber: "081266950382"
+          },
+          callbackUrl: "https://store.domku.xyz/callback",
+          returnUrl: "https://store.domku.xyz",
+          signature,
+          expiryPeriod: 24
+        })
+      }
+    )
 
-    const data = await duitkuRes.json()
+    const text = await duitkuRes.text()
+
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch {
+      return res.status(500).json({
+        success:false,
+        message:text
+      })
+    }
 
     if (data.statusCode !== "00") {
       return res.status(400).json({
