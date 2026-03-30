@@ -5,5 +5,20 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
+      ]
+    }
+  ],
+  "env": {
+    "TURSO_DB_URL": "libsql://store-akaanakbaik.aws-ap-northeast-1.turso.io",
+    "TURSO_AUTH_TOKEN": "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzQ4ODUzMjcsImlkIjoiMDE5ZDNmNjgtNzMwMC03OGIzLTlhZTAtMDhmNTg1ZTVkNmU4IiwicmlkIjoiMzNmYjExZWQtNTFjMS00OTYyLWIyMWMtYzUxYWVkOTZmODk3In0.dsbUQX4AWOzSFOhnqRs9KnANTHCqft90mYFyvd5G6YpMVBMmV_3NEmrbTOHy2qiZx9lMqFE_ToT8XaPmGktUAg"
+  }
 }
