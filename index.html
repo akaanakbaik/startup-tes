@@ -3,97 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Akadev Store - Pterodactyl Panel</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Akadev Store</title>
 </head>
-<body>
-
-<header class="topbar">
-  <div class="wrap topbar-inner">
-    <div class="brand">
-      <img src="https://raw.githubusercontent.com/akaanakbaik/my-cdn/main/file_000000000dec71faa172d7d8d6e29392.png" class="brand-logo">
-      <div class="brand-text">
-        <p class="title">Akadev Store</p>
-        <p class="sub">High-Performance Pterodactyl Panel</p>
-      </div>
-    </div>
-    <nav class="nav">
-      <a href="#katalog">Katalog</a>
-      <a href="#fitur">Fitur</a>
-      <a href="#info">Informasi</a>
-    </nav>
-  </div>
-</header>
-
-<section class="hero">
-  <div class="wrap hero-box">
-    <div class="hero-left">
-      <h1>Deploy Server Bot & Game Kamu dalam Hitungan Detik.</h1>
-      <p>Infrastruktur Pterodactyl yang dirancang khusus untuk stabilitas tinggi.</p>
-      <div class="hero-cta">
-        <a href="#katalog" class="btn btn-primary">Lihat Harga</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="katalog">
-  <div class="wrap">
-    <div class="section-head">
-      <h2>Paket & Harga</h2>
-    </div>
-
-    <div class="grid">
-
-      <div class="card">
-        <div class="plan-header">
-          <div class="plan-name">Starter</div>
-          <div class="price-wrap">
-            <span class="price">Rp4.900</span>
-          </div>
-        </div>
-        <button class="btn-buy" onclick="goCheckout('Starter',4900)">Beli</button>
-      </div>
-
-      <div class="card">
-        <div class="plan-header">
-          <div class="plan-name">Basic</div>
-          <div class="price-wrap">
-            <span class="price">Rp8.900</span>
-          </div>
-        </div>
-        <button class="btn-buy" onclick="goCheckout('Basic',8900)">Beli</button>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<section class="section" id="checkout" style="display:none;">
-  <div class="wrap">
-    <h2>Checkout</h2>
-    <div class="checkout-box">
-      <p id="plan"></p>
-      <p id="price"></p>
-      <input id="name" placeholder="Nama">
-      <input id="email" placeholder="Email">
-      <button onclick="pay()">Bayar</button>
-    </div>
-  </div>
-</section>
-
-<footer class="footer" id="info">
-  <div class="wrap">
-    <p>© 2026 Akadev Store</p>
-    <p>Email: storeakadev@gmail.com</p>
-    <p>Phone: +6281266950382</p>
-    <p>Address: Ujung Gading, Pasaman Barat</p>
-  </div>
-</footer>
-
-<script src="config.js"></script>
-<script src="duitku.js"></script>
-<script src="main.js"></script>
-
+<body class="bg-black text-white">
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
