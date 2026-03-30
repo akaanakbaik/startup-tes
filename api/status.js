@@ -1,34 +1,19 @@
-import crypto from "crypto"
+let db = global.db || (global.db = {})
 
 export default async function handler(req,res){
 
-  const {orderId}=req.body
+  const {orderId} = req.body || {}
 
-  const merchantCode="DS29215"
-  const apiKey="79fbf35e6a735c573fc56cfa8dc25be8"
-
-  const signature = crypto.createHash("md5")
-  .update(merchantCode + orderId + apiKey)
-  .digest("hex")
-
-  const payload={
-    merchantCode,
-    merchantOrderId:orderId,
-    signature
+  if(!orderId){
+    return res.json({status:"NOT_FOUND"})
   }
 
-  const r = await fetch("https://sandbox.duitku.com/webapi/api/merchant/transactionStatus",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify(payload)
+  if(!db[orderId]){
+    return res.json({status:"EXPIRED"})
+  }
+
+  res.json({
+    status: db[orderId].status
   })
 
-  const data = await r.json()
-
-  let status="PENDING"
-
-  if(data.statusCode==="00") status="SUCCESS"
-  if(data.statusCode==="02") status="CANCELED"
-
-  res.json({status})
 }
