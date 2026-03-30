@@ -3,7 +3,7 @@ import crypto from "crypto"
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
-      return res.status(405).json({ success:false, message:"Method not allowed" })
+      return res.status(405).json({ success:false })
     }
 
     const merchantCode = "DS29215"
@@ -12,10 +12,7 @@ export default async function handler(req, res) {
     const { name, price, email } = req.body
 
     if (!name || !price) {
-      return res.status(400).json({
-        success:false,
-        message:"Data tidak lengkap"
-      })
+      return res.status(400).json({ success:false, message:"Data tidak lengkap" })
     }
 
     const merchantOrderId = "INV" + Date.now()
@@ -28,42 +25,28 @@ export default async function handler(req, res) {
 
     const duitkuRes = await fetch("https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         merchantCode,
         paymentAmount,
-        paymentMethod: "BC",
+        paymentMethod: "NQ",
         merchantOrderId,
         productDetails: name,
         email,
         customerVaName: "Akadev User",
         phoneNumber: "081266950382",
         itemDetails: [
-          {
-            name: name,
-            price: paymentAmount,
-            quantity: 1
-          }
+          { name, price: paymentAmount, quantity: 1 }
         ],
         customerDetail: {
           firstName: "Akadev",
-          email: email,
-          phoneNumber: "081266950382",
-          billingAddress: {
-            firstName: "Akadev",
-            address: "Ujung Gading",
-            city: "Pasaman Barat",
-            postalCode: "26572",
-            phone: "081266950382",
-            countryCode: "ID"
-          }
+          email,
+          phoneNumber: "081266950382"
         },
         callbackUrl: "https://store.domku.xyz/callback",
         returnUrl: "https://store.domku.xyz",
         signature,
-        expiryPeriod: 60
+        expiryPeriod: 10
       })
     })
 
@@ -72,21 +55,20 @@ export default async function handler(req, res) {
     if (data.statusCode !== "00") {
       return res.status(400).json({
         success:false,
-        message:data.statusMessage || "Transaksi gagal",
-        duitku:data
+        message:data.statusMessage || "Transaksi gagal"
       })
     }
 
     return res.status(200).json({
       success:true,
-      paymentUrl:data.paymentUrl
+      qrString:data.qrString,
+      merchantOrderId
     })
 
   } catch (err) {
     return res.status(500).json({
       success:false,
-      message:"Server error",
-      error:err.message
+      message:err.message
     })
   }
 }
