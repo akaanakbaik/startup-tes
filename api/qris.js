@@ -1,6 +1,6 @@
 import crypto from "crypto"
 
-let db = {}
+let db = global.db || (global.db = {})
 
 export default async function handler(req,res){
 
@@ -36,11 +36,23 @@ export default async function handler(req,res){
       body:JSON.stringify(payload)
     })
 
-    const data = await r.json()
+    const text = await r.text()
+
+    let data
+    try{
+      data = JSON.parse(text)
+    }catch{
+      return res.status(500).json({error:"duitku invalid response",raw:text})
+    }
+
+    if(!data.qrString){
+      return res.status(500).json({error:"duitku failed",data})
+    }
 
     db[orderId] = {
       status:"PENDING",
-      data
+      amount,
+      reference:data.reference
     }
 
     setTimeout(()=>delete db[orderId], 3600000)
@@ -51,7 +63,7 @@ export default async function handler(req,res){
     })
 
   }catch(e){
-    res.status(500).json({error:"server error"})
+    res.status(500).json({error:e.message})
   }
 
 }
