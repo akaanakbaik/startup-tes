@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       .update(merchantCode + merchantOrderId + paymentAmount + apiKey)
       .digest("hex")
 
-    const duitkuRes = await fetch("https://sandbox.duitku.com/webapi/api/merchant/createInvoice", {
+    const duitkuRes = await fetch("https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -34,32 +34,46 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         merchantCode,
         paymentAmount,
+        paymentMethod: "BC",
         merchantOrderId,
         productDetails: name,
         email,
-        paymentMethod: "SP",
+        customerVaName: "Akadev User",
+        phoneNumber: "081266950382",
+        itemDetails: [
+          {
+            name: name,
+            price: paymentAmount,
+            quantity: 1
+          }
+        ],
+        customerDetail: {
+          firstName: "Akadev",
+          email: email,
+          phoneNumber: "081266950382",
+          billingAddress: {
+            firstName: "Akadev",
+            address: "Ujung Gading",
+            city: "Pasaman Barat",
+            postalCode: "26572",
+            phone: "081266950382",
+            countryCode: "ID"
+          }
+        },
         callbackUrl: "https://store.domku.xyz/callback",
         returnUrl: "https://store.domku.xyz",
-        signature
+        signature,
+        expiryPeriod: 60
       })
     })
 
-    const text = await duitkuRes.text()
+    const data = await duitkuRes.json()
 
-    let data
-    try {
-      data = JSON.parse(text)
-    } catch {
-      return res.status(500).json({
-        success:false,
-        message:"Response Duitku tidak valid"
-      })
-    }
-
-    if (!data.paymentUrl) {
+    if (data.statusCode !== "00") {
       return res.status(400).json({
         success:false,
-        message:"Gagal membuat transaksi"
+        message:data.statusMessage || "Transaksi gagal",
+        duitku:data
       })
     }
 
