@@ -1,20 +1,8 @@
 import crypto from "crypto"
-import { getInvoice } from "./invoice.js"
-import { getOrder } from "./callback.js"
 
 export default async function handler(req,res){
 
-  const {orderId} = req.body
-
-  const cb = getOrder(orderId)
-  if(cb){
-    return res.json({status:cb.status})
-  }
-
-  const inv = getInvoice(orderId)
-  if(!inv){
-    return res.json({status:"UNKNOWN"})
-  }
+  const {orderId}=req.body
 
   const merchantCode="DS29215"
   const apiKey="79fbf35e6a735c573fc56cfa8dc25be8"
@@ -31,7 +19,7 @@ export default async function handler(req,res){
 
   const r = await fetch("https://sandbox.duitku.com/webapi/api/merchant/transactionStatus",{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
+    headers:{ "Content-Type":"application/json" },
     body:JSON.stringify(payload)
   })
 
