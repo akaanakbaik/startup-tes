@@ -2,22 +2,22 @@ import Router from "./router"
 import { useEffect } from "react"
 
 export default function App() {
-  // Tambahkan global styles dan error handling
   useEffect(() => {
-    // Global error handler untuk unhandled promise rejections
     const handleError = (event) => {
       console.error('Global error:', event.error)
-      // Bisa ditambahkan logging ke service monitoring jika diperlukan
+    }
+    
+    const handleRejection = (event) => {
+      console.error('Unhandled promise rejection:', event.reason)
+      event.preventDefault()
     }
     
     window.addEventListener('error', handleError)
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason)
-      event.preventDefault()
-    })
+    window.addEventListener('unhandledrejection', handleRejection)
     
     return () => {
       window.removeEventListener('error', handleError)
+      window.removeEventListener('unhandledrejection', handleRejection)
     }
   }, [])
   
