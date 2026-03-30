@@ -39,7 +39,6 @@ export default function Pilih() {
   const handlePayment = async (method) => {
     setLoading(true)
     
-    // Simpan data transaksi ke localStorage untuk tracking
     const transactionData = {
       product: produk,
       amount: harga,
@@ -48,7 +47,6 @@ export default function Pilih() {
     }
     localStorage.setItem('pending_transaction', JSON.stringify(transactionData))
     
-    // Navigasi ke halaman pembayaran
     nav(method.route, { state: { price: harga, name: produk } })
     
     setTimeout(() => setLoading(false), 500)
