@@ -258,8 +258,7 @@ const styles = {
     color: '#fff',
     cursor: 'pointer',
     fontSize: '14px',
-    fontWeight: '500',
-    transition: 'background 0.2s'
+    fontWeight: '500'
   },
   footer: {
     padding: '16px 20px',
@@ -283,8 +282,7 @@ const styles = {
     borderRadius: '6px',
     color: '#e5e5e5',
     cursor: 'pointer',
-    fontSize: '12px',
-    transition: 'border-color 0.2s'
+    fontSize: '12px'
   },
   loadingSpinner: {
     width: '40px',
@@ -302,7 +300,8 @@ const styles = {
   errorMessage: {
     color: '#ef4444',
     marginBottom: '20px',
-    fontSize: '14px'
+    fontSize: '14px',
+    textAlign: 'center'
   },
   homeButton: {
     width: '100%',
