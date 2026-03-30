@@ -1,107 +1,74 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
 
 export default function Utama(){
 
-  const nav = useNavigate()
-  const [modal,setModal]=useState(false)
-  const [loading,setLoading]=useState(false)
+  const [open,setOpen]=useState(false)
 
-  const buy = (plan)=>{
-    setLoading(true)
-    setTimeout(()=>{
-      setLoading(false)
-      nav("/pilih",{state:{plan}})
-    },800)
+  function go(){
+    window.location.href="/pilih"
   }
 
-  return(
-    <div style={s.body}>
+  return (
+    <div style={{background:"#0a0a0a",minHeight:"100vh",color:"#e5e5e5",fontSize:"13px"}}>
 
-      <header style={s.topbar}>
-        <div style={s.wrap}>
-          <div style={s.brand}>
-            <img src="https://raw.githubusercontent.com/akaanakbaik/my-cdn/main/file_000000000dec71faa172d7d8d6e29392.png" style={s.logo}/>
-            <div>
-              <div style={s.title}>Akadev Store</div>
-              <div style={s.sub}>High-Performance Pterodactyl Panel</div>
+      <div style={{maxWidth:"1000px",margin:"0 auto",padding:"16px"}}>
+
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
+          <div style={{fontWeight:"700"}}>Akadev Store</div>
+          <div style={{fontSize:"11px",color:"#888"}}>Sandbox</div>
+        </div>
+
+        <div style={{marginBottom:"20px"}}>
+          <div style={{fontSize:"18px",fontWeight:"700",marginBottom:"6px"}}>
+            Deploy Server Instan
+          </div>
+          <div style={{color:"#888",fontSize:"12px"}}>
+            Panel Pterodactyl stabil untuk bot dan server ringan
+          </div>
+        </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:"10px"}}>
+
+          {[
+            {name:"Starter",price:4900},
+            {name:"Basic",price:8900},
+            {name:"Standard",price:12900},
+            {name:"Pro",price:19900}
+          ].map((p,i)=>(
+            <div key={i} style={{
+              border:"1px solid #222",
+              borderRadius:"6px",
+              padding:"10px",
+              background:"#171717"
+            }}>
+              <div style={{fontWeight:"600",fontSize:"12px"}}>{p.name}</div>
+              <div style={{fontSize:"11px",color:"#888"}}>1-6GB RAM</div>
+              <div style={{margin:"6px 0",fontWeight:"700"}}>Rp {p.price}</div>
+
+              <button onClick={go} style={{
+                width:"100%",
+                padding:"6px",
+                fontSize:"11px",
+                background:"#2563eb",
+                border:"none",
+                borderRadius:"4px",
+                color:"#fff"
+              }}>
+                Beli
+              </button>
             </div>
-          </div>
+          ))}
+
         </div>
-      </header>
 
-      <section style={s.hero}>
-        <div style={s.wrap}>
-          <h1 style={s.h1}>Deploy Server dalam Hitungan Detik</h1>
-          <p style={s.p}>Stabil, cepat, profesional</p>
+        <div style={{marginTop:"30px",textAlign:"center",fontSize:"10px",color:"#777"}}>
+          payment gateway by{" "}
+          <a href="https://duitku.com" target="_blank" style={{color:"#1e3a8a"}}>
+            duitku
+          </a>
         </div>
-      </section>
 
-      <section style={s.section}>
-        <div style={s.wrap}>
-          <div style={s.grid}>
-
-            {plans.map((p,i)=>(
-              <div key={i} style={s.card}>
-                <div style={s.planName}>{p.name}</div>
-                <div style={s.price}>Rp{p.price}</div>
-
-                <div style={s.spec}>RAM {p.ram}</div>
-                <div style={s.spec}>CPU {p.cpu}</div>
-                <div style={s.spec}>Disk {p.disk}</div>
-
-                <button style={s.btn} onClick={()=>buy(p)}>
-                  {loading ? "Loading..." : "Beli"}
-                </button>
-              </div>
-            ))}
-
-          </div>
-        </div>
-      </section>
-
-      {modal && (
-        <div style={s.modal}>
-          <div style={s.modalBox}>
-            Sistem dalam pengembangan
-            <button onClick={()=>setModal(false)}>Tutup</button>
-          </div>
-        </div>
-      )}
-
+      </div>
     </div>
   )
-}
-
-const plans=[
-{name:"Starter",price:"4900",ram:"1GB",cpu:"40%",disk:"2GB"},
-{name:"Basic",price:"8900",ram:"2GB",cpu:"60%",disk:"4GB"},
-{name:"Standard",price:"12900",ram:"3GB",cpu:"80%",disk:"5GB"},
-{name:"Plus",price:"16900",ram:"4GB",cpu:"100%",disk:"8GB"},
-{name:"Pro",price:"19900",ram:"6GB",cpu:"120%",disk:"12GB"},
-{name:"Advanced",price:"27900",ram:"8GB",cpu:"150%",disk:"15GB"},
-{name:"Ultra",price:"34900",ram:"10GB",cpu:"200%",disk:"20GB"},
-{name:"Max",price:"49900",ram:"Unlimited",cpu:"Unlimited",disk:"Unlimited"}
-]
-
-const s={
-body:{background:"#0a0a0a",color:"#fff",minHeight:"100vh"},
-wrap:{maxWidth:"1100px",margin:"auto",padding:"20px"},
-topbar:{borderBottom:"1px solid #333"},
-brand:{display:"flex",gap:"10px",alignItems:"center"},
-logo:{width:"36px",height:"36px",borderRadius:"50%"},
-title:{fontSize:"14px",fontWeight:"700"},
-sub:{fontSize:"11px",color:"#aaa"},
-hero:{padding:"40px 0"},
-h1:{fontSize:"24px"},
-p:{color:"#aaa"},
-section:{padding:"20px 0"},
-grid:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:"10px"},
-card:{background:"#171717",padding:"12px",borderRadius:"8px"},
-planName:{fontSize:"14px"},
-price:{fontSize:"18px",fontWeight:"700"},
-spec:{fontSize:"11px",color:"#aaa"},
-btn:{marginTop:"10px",padding:"8px",background:"#2563eb",border:"none",color:"#fff",borderRadius:"6px"},
-modal:{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",display:"flex",justifyContent:"center",alignItems:"center"},
-modalBox:{background:"#111",padding:"20px"}
 }
