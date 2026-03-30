@@ -14,13 +14,17 @@ function createSignature(orderId, amount) {
     .digest("hex")
 }
 
-async function createTransaction(paymentMethod, orderId, amount) {
+function generateQRImage(qrString) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrString)}`
+}
+
+async function createTransaction(method, orderId, amount) {
   const signature = createSignature(orderId, amount)
 
   const body = {
     merchantCode: config.merchantCode,
     paymentAmount: amount,
-    paymentMethod,
+    paymentMethod: method,
     merchantOrderId: orderId,
     productDetails: "Pembayaran Paket Server Akadev",
     additionalParam: "",
@@ -62,7 +66,7 @@ async function createTransaction(paymentMethod, orderId, amount) {
     callbackUrl: config.callbackUrl,
     returnUrl: config.returnUrl,
     signature,
-    expiryPeriod: paymentMethod === "NQ" ? 24 : 10
+    expiryPeriod: method === "NQ" ? 24 : 10
   }
 
   const res = await fetch("https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry", {
@@ -72,6 +76,10 @@ async function createTransaction(paymentMethod, orderId, amount) {
   })
 
   const data = await res.json()
+
+  if (data.qrString) {
+    data.qrImage = generateQRImage(data.qrString)
+  }
 
   return data
 }
@@ -88,25 +96,22 @@ export default async function handler(req, res) {
 
       return res.status(200).json({
         success: true,
-        fallback: true,
         method: "SP",
-        message: "Metode NOBU belum tersedia, menggunakan QRIS alternatif",
+        fallback: true,
         data: result
       })
     }
 
     return res.status(200).json({
       success: true,
-      fallback: false,
       method: "NQ",
-      message: "QRIS NOBU berhasil dibuat",
+      fallback: false,
       data: result
     })
   } catch (err) {
     return res.status(500).json({
       success: false,
-      message: "Terjadi kesalahan pada sistem pembayaran",
-      error: err.message
+      message: err.message
     })
   }
 }
