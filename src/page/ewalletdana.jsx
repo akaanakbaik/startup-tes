@@ -1,17 +1,28 @@
+import { useEffect } from "react"
+
 export default function Dana(){
-  return (
-    <div style={s.wrap}>
-      <div style={s.box}>
-        <div style={s.title}>DANA Payment</div>
-        <div style={s.desc}>Redirect ke aplikasi DANA</div>
+
+  useEffect(()=>{
+    fetch("/api/dana",{method:"POST"})
+    .then(r=>r.json())
+    .then(res=>{
+      if(res.paymentUrl){
+        window.location.href=res.paymentUrl
+      }
+    })
+  },[])
+
+  return(
+    <div style={s.body}>
+      <div style={s.wrap}>
+        <div style={s.text}>Menghubungkan ke DANA...</div>
       </div>
     </div>
   )
 }
 
 const s={
-wrap:{minHeight:"100vh",background:"#0b0b0b"},
-box:{maxWidth:"400px",margin:"auto",padding:"15px",color:"#fff"},
-title:{fontSize:"14px"},
-desc:{fontSize:"12px",color:"#888"}
+body:{background:"#0a0a0a",color:"#fff",minHeight:"100vh"},
+wrap:{display:"flex",justifyContent:"center",alignItems:"center",height:"100vh"},
+text:{fontSize:"13px"}
 }
