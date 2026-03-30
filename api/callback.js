@@ -1,42 +1,36 @@
 import crypto from "crypto"
 
-const orders = new Map()
+let db = global.db || (global.db = {})
 
 export default async function handler(req,res){
 
-  const {
-    merchantCode,
-    amount,
-    merchantOrderId,
-    resultCode,
-    reference,
-    signature
-  } = req.body
+  try{
 
-  const apiKey="79fbf35e6a735c573fc56cfa8dc25be8"
+    const body = req.body
 
-  const validSig = crypto.createHash("md5")
-  .update(merchantCode + amount + merchantOrderId + apiKey)
-  .digest("hex")
+    const merchantCode = body.merchantCode
+    const amount = body.amount
+    const orderId = body.merchantOrderId
+    const signature = body.signature
 
-  if(signature !== validSig){
-    return res.status(400).send("INVALID SIGNATURE")
+    const apiKey="79fbf35e6a735c573fc56cfa8dc25be8"
+
+    const valid = crypto.createHash("md5")
+    .update(merchantCode + amount + orderId + apiKey)
+    .digest("hex")
+
+    if(signature !== valid){
+      return res.status(400).send("INVALID SIGNATURE")
+    }
+
+    if(db[orderId]){
+      db[orderId].status = body.resultCode === "00" ? "SUCCESS" : "FAILED"
+    }
+
+    res.status(200).send("OK")
+
+  }catch(e){
+    res.status(500).send("ERROR")
   }
 
-  let status="PENDING"
-
-  if(resultCode==="00") status="SUCCESS"
-  if(resultCode==="01") status="FAILED"
-
-  orders.set(merchantOrderId,{
-    status,
-    reference,
-    amount
-  })
-
-  res.status(200).send("OK")
-}
-
-export function getOrder(id){
-  return orders.get(id)
 }
