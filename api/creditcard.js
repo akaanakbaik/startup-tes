@@ -1,8 +1,7 @@
 import crypto from "crypto"
-import { createTransaction } from "../../src/utils/transaction.js"
+import { createTransaction } from "../src/lib/db.js"
 
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -18,7 +17,6 @@ export default async function handler(req, res) {
   try {
     let { amount, customerEmail, customerName, productName } = req.body
 
-    // Validasi amount
     amount = parseInt(amount)
     if (isNaN(amount) || amount < 1000 || amount > 10000000) {
       return res.status(400).json({ 
@@ -27,32 +25,29 @@ export default async function handler(req, res) {
       })
     }
 
-    const merchantCode = process.env.DUITKU_MERCHANT_CODE || "DS29215"
-    const apiKey = process.env.DUITKU_API_KEY || "79fbf35e6a735c573fc56cfa8dc25be8"
-    const isProduction = process.env.NODE_ENV === 'production'
-    const baseUrl = process.env.BASE_URL || "https://store.domku.xyz"
-
+    const merchantCode = "DS29215"
+    const apiKey = "79fbf35e6a735c573fc56cfa8dc25be8"
     const orderId = "INV" + Date.now() + Math.random().toString(36).substr(2, 6)
     const customerVaName = customerName || "AKADEV STORE"
+    const product = productName || "Server Panel"
+    const email = customerEmail || "storeakadev@gmail.com"
 
-    // Buat signature
     const signature = crypto
       .createHash("md5")
       .update(merchantCode + orderId + amount + apiKey)
       .digest("hex")
 
-    // Payload untuk Duitku
     const payload = {
       merchantCode,
       paymentAmount: amount,
       paymentMethod: "VC",
       merchantOrderId: orderId,
-      productDetails: productName || "Pembayaran Credit Card",
-      email: customerEmail || "storeakadev@gmail.com",
-      customerVaName,
+      productDetails: "Pembayaran Credit Card",
+      email: email,
+      customerVaName: customerVaName,
       itemDetails: [
         {
-          name: productName || "Server Panel",
+          name: product,
           price: amount,
           quantity: 1
         }
@@ -60,7 +55,7 @@ export default async function handler(req, res) {
       customerDetail: {
         firstName: customerName?.split(' ')[0] || "Akadev",
         lastName: customerName?.split(' ').slice(1).join(' ') || "Store",
-        email: customerEmail || "storeakadev@gmail.com",
+        email: email,
         phoneNumber: "081266950382",
         billingAddress: {
           firstName: customerName?.split(' ')[0] || "Akadev",
@@ -81,52 +76,47 @@ export default async function handler(req, res) {
           countryCode: "ID"
         }
       },
-      callbackUrl: `${baseUrl}/api/callback`,
-      returnUrl: `${baseUrl}/result`,
+      callbackUrl: "https://store.domku.xyz/api/callback",
+      returnUrl: "https://store.domku.xyz/result",
       signature,
       expiryPeriod: 30,
       additionalParam: {
-        productName: productName || "Server Panel"
+        productName: product
       }
     }
-
-    // Pilih endpoint berdasarkan environment
-    const apiUrl = isProduction 
-      ? "https://passport.duitku.com/webapi/api/merchant/v2/inquiry"
-      : "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry"
 
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 30000)
 
     try {
-      const duitkuResponse = await fetch(apiUrl, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "User-Agent": "AkadevStore/1.0"
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      })
+      const duitkuResponse = await fetch(
+        "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry",
+        {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "User-Agent": "AkadevStore/1.0"
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        }
+      )
 
       clearTimeout(timeoutId)
-
       const data = await duitkuResponse.json()
 
-      if (!data.paymentUrl && !data.qrString) {
+      if (!data.paymentUrl) {
         throw new Error(data.message || 'Failed to create payment')
       }
 
-      // Simpan transaksi ke database
-      createTransaction({
+      await createTransaction({
         orderId,
         amount,
-        productName: productName || "Server Panel",
-        customerEmail: customerEmail || "storeakadev@gmail.com",
-        customerName,
+        productName: product,
+        customerEmail: email,
+        customerName: customerVaName,
         paymentMethod: "CREDIT_CARD",
-        paymentUrl: data.paymentUrl,
-        createdAt: new Date().toISOString()
+        paymentUrl: data.paymentUrl
       })
 
       return res.status(200).json({
@@ -137,7 +127,6 @@ export default async function handler(req, res) {
           amount
         }
       })
-
     } catch (fetchError) {
       clearTimeout(timeoutId)
       if (fetchError.name === 'AbortError') {
@@ -145,7 +134,6 @@ export default async function handler(req, res) {
       }
       throw fetchError
     }
-
   } catch (err) {
     console.error('Credit Card API Error:', err)
     return res.status(500).json({
