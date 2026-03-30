@@ -34,13 +34,11 @@ export default function CreditCard() {
         throw new Error(data.error || 'Failed to process payment')
       }
 
-      // Redirect ke halaman pembayaran Duitku
       if (data.data.paymentUrl) {
         window.location.href = data.data.paymentUrl
       } else {
         throw new Error('No payment URL received')
       }
-
     } catch (err) {
       setError(err.message)
       setLoading(false)
