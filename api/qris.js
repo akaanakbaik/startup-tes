@@ -2,7 +2,13 @@ import crypto from "crypto"
 
 export default async function handler(req, res) {
   try {
-    const { amount } = req.body
+    let body = req.body
+
+    if (typeof body === "string") {
+      body = JSON.parse(body)
+    }
+
+    const amount = body?.amount || 40000
 
     const merchantCode = "DS29215"
     const apiKey = "79fbf35e6a735c573fc56cfa8dc25be8"
@@ -41,7 +47,7 @@ export default async function handler(req, res) {
       expiryPeriod: 10
     }
 
-    const duitku = await fetch(
+    const r = await fetch(
       "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry",
       {
         method: "POST",
@@ -50,17 +56,34 @@ export default async function handler(req, res) {
       }
     )
 
-    const data = await duitku.json()
+    const text = await r.text()
+
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch {
+      return res.status(500).json({
+        success: false,
+        raw: text
+      })
+    }
+
+    if (!data.qrString) {
+      return res.status(500).json({
+        success: false,
+        duitku: data
+      })
+    }
 
     return res.status(200).json({
       success: true,
-      orderId,
-      data
+      data,
+      orderId
     })
   } catch (err) {
     return res.status(500).json({
       success: false,
-      message: err.message
+      error: err.message
     })
   }
 }
