@@ -1,28 +1,26 @@
 export default function Dana(){
 
+  const data = JSON.parse(localStorage.getItem("checkout")||"{}")
+  const fee=1000
+  const total=data.price+fee
+
+  function pay(){
+    window.location.href="/api/dana"
+  }
+
   return (
-    <div style={{background:"#0a0a0a",minHeight:"100vh",display:"flex",justifyContent:"center",alignItems:"center",padding:"16px"}}>
+    <div style={{background:"#0a0a0a",minHeight:"100vh",display:"flex",justifyContent:"center",alignItems:"center"}}>
 
-      <div style={{
-        width:"100%",
-        maxWidth:"320px",
-        background:"#171717",
-        border:"1px solid #222",
-        borderRadius:"8px",
-        padding:"14px",
-        fontSize:"12px",
-        textAlign:"center"
-      }}>
+      <div style={{width:"320px",background:"#171717",padding:"16px",borderRadius:"8px",border:"1px solid #222"}}>
 
-        <div style={{fontWeight:"600",marginBottom:"6px"}}>
-          DANA Payment
-        </div>
+        <div style={{fontWeight:"700",marginBottom:"10px"}}>DANA</div>
 
-        <div style={{color:"#888",marginBottom:"12px"}}>
-          Pembayaran via aplikasi DANA
-        </div>
+        <div style={{fontSize:"12px"}}>Harga: Rp {data.price}</div>
+        <div style={{fontSize:"12px"}}>Fee: Rp {fee}</div>
 
-        <button style={{
+        <div style={{fontWeight:"700",margin:"10px 0"}}>Total: Rp {total}</div>
+
+        <button onClick={pay} style={{
           width:"100%",
           padding:"8px",
           background:"#16a34a",
@@ -31,17 +29,15 @@ export default function Dana(){
           color:"#fff",
           fontSize:"12px"
         }}>
-          Buka DANA
+          Bayar Sekarang
         </button>
 
-        <div style={{marginTop:"12px",fontSize:"10px",color:"#777"}}>
-          payment gateway by{" "}
-          <a href="https://duitku.com" target="_blank" style={{color:"#1e3a8a"}}>
-            duitku
-          </a>
+        <div style={{marginTop:"12px",textAlign:"center",fontSize:"10px",color:"#777"}}>
+          payment gateway by <a href="https://duitku.com" target="_blank" style={{color:"#1e3a8a"}}>duitku</a>
         </div>
 
       </div>
+
     </div>
   )
 }
