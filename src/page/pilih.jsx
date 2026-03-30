@@ -1,35 +1,45 @@
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 
-export default function Pilih() {
+export default function Pilih(){
+
   const nav = useNavigate()
+  const {state}=useLocation()
 
-  return (
-    <div style={s.wrap}>
-      <div style={s.box}>
-        <div style={s.title}>Pilih Metode Pembayaran</div>
+  const plan = state?.plan
 
-        <div style={s.item} onClick={()=>nav("/qris")}>
+  return(
+    <div style={s.body}>
+      <div style={s.wrap}>
+
+        <div style={s.card}>
+          <div style={s.title}>Konfirmasi Pesanan</div>
+          <div>{plan?.name}</div>
+          <div>Rp{plan?.price}</div>
+        </div>
+
+        <div style={s.title}>Pilih Pembayaran</div>
+
+        <div style={s.item} onClick={()=>nav("/qris",{state:{plan}})}>
           QRIS (ShopeePay)
         </div>
 
-        <div style={s.item} onClick={()=>nav("/cc")}>
-          Credit Card
-        </div>
-
-        <div style={s.item} onClick={()=>nav("/dana")}>
+        <div style={s.item} onClick={()=>nav("/dana",{state:{plan}})}>
           DANA
         </div>
 
-        <button style={s.back} onClick={()=>nav("/")}>Kembali</button>
+        <div style={s.item} onClick={()=>nav("/cc",{state:{plan}})}>
+          Credit Card
+        </div>
+
       </div>
     </div>
   )
 }
 
-const s = {
-  wrap:{minHeight:"100vh",background:"#0b0b0b"},
-  box:{maxWidth:"400px",margin:"auto",padding:"15px",color:"#fff"},
-  title:{fontSize:"14px",marginBottom:"10px"},
-  item:{padding:"12px",border:"1px solid #222",marginBottom:"8px",borderRadius:"6px",fontSize:"13px"},
-  back:{marginTop:"10px",width:"100%",padding:"10px",background:"#111",border:"1px solid #333",color:"#fff"}
+const s={
+body:{background:"#0a0a0a",color:"#fff",minHeight:"100vh"},
+wrap:{maxWidth:"400px",margin:"auto",padding:"20px"},
+title:{marginTop:"15px",fontSize:"14px"},
+card:{background:"#171717",padding:"10px",borderRadius:"6px"},
+item:{padding:"12px",background:"#111",marginTop:"10px",borderRadius:"6px"}
 }
