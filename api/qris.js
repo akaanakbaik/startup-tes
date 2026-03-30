@@ -1,7 +1,7 @@
 import crypto from "crypto"
+import { createTransaction } from "../src/lib/db.js"
 
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -16,7 +16,6 @@ export default async function handler(req, res) {
 
   try {
     let body = req.body
-
     if (typeof body === "string") {
       try {
         body = JSON.parse(body)
@@ -26,8 +25,10 @@ export default async function handler(req, res) {
     }
 
     const amount = body?.amount || 40000
+    const productName = body?.productName || "Server Panel"
+    const customerEmail = body?.customerEmail || "storeakadev@gmail.com"
+    const customerName = body?.customerName || "Akadev Store"
 
-    // Validasi amount
     if (amount < 1000 || amount > 10000000) {
       return res.status(400).json({ 
         success: false, 
@@ -50,19 +51,19 @@ export default async function handler(req, res) {
       paymentMethod: "SP",
       merchantOrderId: orderId,
       productDetails: "Pembayaran QRIS",
-      email: "storeakadev@gmail.com",
+      email: customerEmail,
       customerVaName: "AKADEV STORE",
       itemDetails: [
         {
-          name: "Server Panel",
+          name: productName,
           price: amount,
           quantity: 1
         }
       ],
       customerDetail: {
-        firstName: "Akadev",
-        lastName: "Store",
-        email: "storeakadev@gmail.com",
+        firstName: customerName.split(' ')[0] || "Akadev",
+        lastName: customerName.split(' ').slice(1).join(' ') || "Store",
+        email: customerEmail,
         phoneNumber: "081266950382"
       },
       callbackUrl: "https://store.domku.xyz/api/callback",
@@ -72,7 +73,7 @@ export default async function handler(req, res) {
     }
 
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 detik timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000)
 
     try {
       const r = await fetch(
@@ -86,37 +87,32 @@ export default async function handler(req, res) {
       )
 
       clearTimeout(timeoutId)
-
-      const text = await r.text()
-
-      let data
-      try {
-        data = JSON.parse(text)
-      } catch {
-        return res.status(500).json({
-          success: false,
-          error: 'Invalid response from payment gateway',
-          raw: text
-        })
-      }
+      const data = await r.json()
 
       if (!data.qrString) {
         return res.status(500).json({
           success: false,
-          error: data.message || 'Failed to generate QR code',
-          duitku: data
+          error: data.message || 'Failed to generate QR code'
         })
       }
+
+      await createTransaction({
+        orderId,
+        amount,
+        productName,
+        customerEmail,
+        customerName,
+        paymentMethod: "QRIS",
+        qrString: data.qrString
+      })
 
       return res.status(200).json({
         success: true,
         data: {
           qrString: data.qrString,
-          orderId: orderId,
-          amount: amount,
-          expiredAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
-        },
-        orderId
+          orderId,
+          amount
+        }
       })
     } catch (fetchError) {
       clearTimeout(timeoutId)
