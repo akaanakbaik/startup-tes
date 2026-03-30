@@ -6,9 +6,7 @@ export default function QR() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [orderId, setOrderId] = useState('')
-  const [expiredAt, setExpiredAt] = useState(null)
   const [timeLeft, setTimeLeft] = useState('')
-  
   const navigate = useNavigate()
   const { state } = useLocation()
   const amount = state?.price || 40000
@@ -16,25 +14,30 @@ export default function QR() {
 
   useEffect(() => {
     let interval
-    if (expiredAt) {
+    if (orderId && timeLeft !== 'Expired') {
       interval = setInterval(() => {
-        const now = new Date()
-        const expired = new Date(expiredAt)
-        const diff = expired - now
-        
-        if (diff <= 0) {
-          setTimeLeft('Expired')
-          clearInterval(interval)
-          setError('QR Code telah kadaluarsa, silakan buat transaksi baru')
-        } else {
-          const minutes = Math.floor(diff / 60000)
-          const seconds = Math.floor((diff % 60000) / 1000)
-          setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`)
+        const stored = localStorage.getItem(`order_${orderId}`)
+        if (stored) {
+          const data = JSON.parse(stored)
+          const createdAt = new Date(data.createdAt)
+          const expiredAt = new Date(createdAt.getTime() + 10 * 60 * 1000)
+          const now = new Date()
+          const diff = expiredAt - now
+          
+          if (diff <= 0) {
+            setTimeLeft('Expired')
+            setError('QR Code telah kadaluarsa')
+            clearInterval(interval)
+          } else {
+            const minutes = Math.floor(diff / 60000)
+            const seconds = Math.floor((diff % 60000) / 1000)
+            setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`)
+          }
         }
       }, 1000)
     }
     return () => clearInterval(interval)
-  }, [expiredAt])
+  }, [orderId, timeLeft])
 
   const load = async () => {
     setLoading(true)
@@ -46,7 +49,12 @@ export default function QR() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ amount })
+        body: JSON.stringify({ 
+          amount,
+          productName,
+          customerEmail: 'storeakadev@gmail.com',
+          customerName: 'Akadev Store'
+        })
       })
 
       const json = await res.json()
@@ -57,9 +65,7 @@ export default function QR() {
 
       setQr(json.data.qrString)
       setOrderId(json.data.orderId)
-      setExpiredAt(json.data.expiredAt)
       
-      // Simpan orderId ke localStorage untuk pengecekan status
       localStorage.setItem(`order_${json.data.orderId}`, JSON.stringify({
         orderId: json.data.orderId,
         amount: json.data.amount,
@@ -67,11 +73,9 @@ export default function QR() {
         createdAt: new Date().toISOString()
       }))
       
-      // Mulai polling untuk cek status pembayaran
       startPolling(json.data.orderId)
     } catch (e) {
       setError(e.message)
-      console.error('QR Error:', e)
     } finally {
       setLoading(false)
     }
@@ -79,7 +83,7 @@ export default function QR() {
 
   const startPolling = (orderId) => {
     let attempts = 0
-    const maxAttempts = 60 // 5 menit (cek setiap 5 detik)
+    const maxAttempts = 60
     
     const pollInterval = setInterval(async () => {
       attempts++
@@ -99,14 +103,13 @@ export default function QR() {
           })
         } else if (attempts >= maxAttempts) {
           clearInterval(pollInterval)
-          setError('Waktu pembayaran habis, silakan buat transaksi baru')
+          setError('Waktu pembayaran habis')
         }
       } catch (error) {
         console.error('Polling error:', error)
       }
     }, 5000)
     
-    // Simpan interval ID untuk cleanup
     window.pollInterval = pollInterval
   }
 
@@ -122,7 +125,7 @@ export default function QR() {
       <div style={styles.container}>
         <div style={styles.card}>
           <div style={styles.loadingSpinner}></div>
-          <p>Memproses pembayaran...</p>
+          <p>Memproses QRIS...</p>
         </div>
       </div>
     )
@@ -139,7 +142,7 @@ export default function QR() {
           </button>
           <button onClick={() => navigate('/pilih', { state: { price: amount, name: productName } })} 
             style={styles.backButton}>
-            Kembali ke Pilihan Pembayaran
+            Kembali
           </button>
         </div>
       </div>
@@ -149,7 +152,11 @@ export default function QR() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h3 style={styles.title}>QRIS Payment</h3>
+        <div style={styles.header}>
+          <div style={styles.icon}>📱</div>
+          <h3 style={styles.title}>QRIS Payment</h3>
+          <p style={styles.subtitle}>Scan menggunakan aplikasi pembayaran</p>
+        </div>
         
         <div style={styles.productInfo}>
           <div>{productName}</div>
@@ -171,7 +178,7 @@ export default function QR() {
               style={styles.qrImage}
             />
             <div style={styles.instruction}>
-              Scan QR Code di atas menggunakan aplikasi pembayaran (ShopeePay, Dana, OVO, LinkAja, dll)
+              Scan QR Code di atas menggunakan aplikasi pembayaran (ShopeePay, Dana, OVO, LinkAja)
             </div>
             <div style={styles.orderId}>
               Order ID: <span style={styles.orderIdValue}>{orderId}</span>
@@ -199,17 +206,29 @@ const styles = {
   },
   card: {
     background: '#171717',
-    borderRadius: '12px',
+    borderRadius: '16px',
     padding: '24px',
     maxWidth: '400px',
     width: '100%',
     textAlign: 'center',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+    boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+  },
+  header: {
+    marginBottom: '20px'
+  },
+  icon: {
+    fontSize: '48px',
+    marginBottom: '12px'
   },
   title: {
     fontSize: '20px',
-    marginBottom: '20px',
-    color: '#e5e5e5'
+    fontWeight: 'bold',
+    color: '#e5e5e5',
+    marginBottom: '8px'
+  },
+  subtitle: {
+    fontSize: '12px',
+    color: '#888'
   },
   productInfo: {
     background: '#0a0a0a',
