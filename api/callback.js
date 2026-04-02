@@ -29,7 +29,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields' })
     }
 
-    const apiKey = "79fbf35e6a735c573fc56cfa8dc25be8"
+    const apiKey = "290cbe6bcb208b191dd2e9f197f1ea68"
 
     const validSign = crypto
       .createHash("md5")
