@@ -9,6 +9,8 @@ const Dana = lazy(() => import("./page/ewalletdana"))
 const Success = lazy(() => import("./page/succes"))
 const Failed = lazy(() => import("./page/failed"))
 const Invoice = lazy(() => import("./page/invoice"))
+const Terms = lazy(() => import("./page/Terms"))
+const Privacy = lazy(() => import("./page/Privacy"))
 
 const LoadingScreen = () => (
   <div style={{
@@ -43,6 +45,8 @@ export default function Router() {
           <Route path="/success" element={<Success />} />
           <Route path="/failed" element={<Failed />} />
           <Route path="/invoice/:id" element={<Invoice />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
