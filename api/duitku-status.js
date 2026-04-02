@@ -3,7 +3,7 @@ import crypto from "crypto"
 export default async function handler(req, res) {
   try {
     const merchantCode = "DS29215"
-    const apiKey = "79fbf35e6a735c573fc56cfa8dc25be8"
+    const apiKey = "290cbe6bcb208b191dd2e9f197f1ea68"
 
     const { merchantOrderId } = req.body
 
