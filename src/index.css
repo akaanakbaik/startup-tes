@@ -18,6 +18,24 @@
   }
 }
 
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -74,6 +92,14 @@ button:active {
 
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-bounce {
+  animation: bounce 0.5s ease-in-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @media (max-width: 768px) {
