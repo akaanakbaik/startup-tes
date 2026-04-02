@@ -1,8 +1,8 @@
 import crypto from "crypto"
 
 const config = {
-  merchantCode: "DS29215",
-  apiKey: "79fbf35e6a735c573fc56cfa8dc25be8",
+  merchantCode: "DS29293",
+  apiKey: "290cbe6bcb208b191dd2e9f197f1ea68",
   callbackUrl: "https://store.domku.xyz/callback",
   returnUrl: "https://store.domku.xyz/return"
 }
