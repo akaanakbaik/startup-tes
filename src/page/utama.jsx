@@ -71,10 +71,15 @@ export default function Utama() {
         </div>
 
         <div style={styles.footer}>
+          <div style={styles.footerLinks}>
+            <a href="/terms" style={styles.footerLink}>Syarat & Ketentuan</a>
+            <span style={styles.separator}>|</span>
+            <a href="/privacy" style={styles.footerLink}>Kebijakan Privasi</a>
+          </div>
           <div style={styles.footerContent}>
-            <div>📧 storeakadev@gmail.com</div>
-            <div>📞 081266950382</div>
-            <div>📍 Indonesia</div>
+            <span>📧 storeakadev@gmail.com</span>
+            <span>📞 081266950382</span>
+            <span>📍 Indonesia</span>
           </div>
           <div style={styles.copyright}>
             © 2024 Akadev Store. All rights reserved.
@@ -194,17 +199,31 @@ const styles = {
     paddingTop: '24px',
     textAlign: 'center'
   },
+  footerLinks: {
+    marginBottom: '12px'
+  },
+  footerLink: {
+    color: '#888',
+    textDecoration: 'none',
+    fontSize: '12px',
+    transition: 'color 0.2s'
+  },
+  separator: {
+    color: '#333',
+    margin: '0 10px',
+    fontSize: '12px'
+  },
   footerContent: {
     display: 'flex',
     justifyContent: 'center',
-    gap: '24px',
+    gap: '20px',
     fontSize: '12px',
-    color: '#888',
-    marginBottom: '16px',
+    color: '#666',
+    marginBottom: '12px',
     flexWrap: 'wrap'
   },
   copyright: {
     fontSize: '11px',
-    color: '#666'
+    color: '#555'
   }
 }
