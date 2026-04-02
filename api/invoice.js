@@ -4,8 +4,8 @@ const invoices = new Map()
 
 export default async function handler(req,res){
 
-  const merchantCode="DS29215"
-  const apiKey="79fbf35e6a735c573fc56cfa8dc25be8"
+  const merchantCode="DS29293"
+  const apiKey="290cbe6bcb208b191dd2e9f197f1ea68"
 
   const {plan,amount,method} = req.body
 
