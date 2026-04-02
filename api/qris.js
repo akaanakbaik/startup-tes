@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     }
 
     const merchantCode = "DS29215"
-    const apiKey = "79fbf35e6a735c573fc56cfa8dc25be8"
+    const apiKey = "290cbe6bcb208b191dd2e9f197f1ea68"
     const orderId = "INV" + Date.now() + Math.random().toString(36).substr(2, 6)
 
     const signature = crypto
